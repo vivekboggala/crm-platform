@@ -1,0 +1,105 @@
+{
+  "app": {
+    "name": "CRM Platform",
+    "theme": "light",
+    "locale": "en",
+    "description": "A config-driven CRM for managing contacts and deals"
+  },
+  "auth": {
+    "methods": ["email", "google"],
+    "userScoped": true
+  },
+  "database": {
+    "entities": [
+      {
+        "name": "Contact",
+        "icon": "users",
+        "displayField": "name",
+        "fields": [
+  { "name": "name", "type": "string", "required": true, "label": "Full Name", "placeholder": "John Doe" },
+  { "name": "email", "type": "email", "required": true, "label": "Email Address", "placeholder": "john@example.com" },
+  { "name": "phone", "type": "phone", "required": false, "label": "Phone Number", "placeholder": "+1 555-0123" },
+  { "name": "company", "type": "string", "required": false, "label": "Company", "placeholder": "Acme Inc." },
+  { "name": "notes", "type": "text", "required": false, "label": "Notes", "placeholder": "Additional details..." }
+]
+      },
+      {
+        "name": "Deal",
+        "icon": "dollar-sign",
+        "displayField": "title",
+        "fields": [
+          { "name": "title", "type": "string", "required": true, "label": "Deal Title", "placeholder": "Enterprise License" },
+          { "name": "value", "type": "number", "required": true, "label": "Deal Value ($)", "placeholder": "10000" },
+          { "name": "stage", "type": "string", "required": true, "label": "Stage", "placeholder": "Prospecting" },
+          { "name": "contactEmail", "type": "email", "required": false, "label": "Contact Email", "placeholder": "client@company.com" },
+          { "name": "closeDate", "type": "date", "required": false, "label": "Expected Close Date" },
+          { "name": "won", "type": "boolean", "required": false, "label": "Deal Won", "defaultValue": false }
+        ]
+      },
+      {
+        "name": "Task",
+        "icon": "check-square",
+        "displayField": "title",
+        "fields": [
+          { "name": "title", "type": "string", "required": true, "label": "Task Title", "placeholder": "Follow up with client" },
+          { "name": "description", "type": "text", "required": false, "label": "Description" },
+          { "name": "dueDate", "type": "date", "required": false, "label": "Due Date" },
+          { "name": "completed", "type": "boolean", "required": false, "label": "Completed", "defaultValue": false },
+          { "name": "priority", "type": "string", "required": true, "label": "Priority", "placeholder": "high" }
+        ]
+      }
+    ]
+  },
+  "ui": {
+    "pages": [
+      {
+        "route": "/",
+        "title": "Dashboard",
+        "components": [
+          { "type": "dashboard" }
+        ]
+      },
+      {
+        "route": "/contacts",
+        "title": "Contacts",
+        "components": [
+          { "type": "table", "entity": "Contact" },
+          { "type": "form", "entity": "Contact", "action": "create" },
+          { "type": "csv_import", "entity": "Contact" }
+        ]
+      },
+      {
+        "route": "/deals",
+        "title": "Deals",
+        "components": [
+          { "type": "table", "entity": "Deal" },
+          { "type": "form", "entity": "Deal", "action": "create" }
+        ]
+      },
+      {
+        "route": "/tasks",
+        "title": "Tasks",
+        "components": [
+          { "type": "table", "entity": "Task" },
+          { "type": "form", "entity": "Task", "action": "create" }
+        ]
+      }
+    ]
+  },
+  "apis": [
+    { "entity": "Contact", "operations": ["list", "create", "update", "delete"] },
+    { "entity": "Deal", "operations": ["list", "create", "update", "delete"] },
+    { "entity": "Task", "operations": ["list", "create", "update", "delete"] }
+  ],
+  "notifications": [
+    { "on": "Contact.create", "notify": "toast", "message": "New contact added!" },
+    { "on": "Contact.update", "notify": "toast", "message": "Contact updated!" },
+    { "on": "Contact.delete", "notify": "toast", "message": "Contact deleted." },
+    { "on": "Deal.create", "notify": "toast", "message": "New deal created!" },
+    { "on": "Deal.update", "notify": "toast", "message": "Deal updated!" },
+    { "on": "Deal.delete", "notify": "toast", "message": "Deal deleted." },
+    { "on": "Task.create", "notify": "toast", "message": "New task created!" },
+    { "on": "Task.update", "notify": "toast", "message": "Task status updated!" },
+    { "on": "Task.delete", "notify": "toast", "message": "Task removed." }
+  ]
+}

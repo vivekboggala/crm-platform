@@ -1,0 +1,50 @@
+{
+  "common": {
+    "dashboard": "Panel de control",
+    "contacts": "Contactos",
+    "deals": "Tratos",
+    "tasks": "Tareas",
+    "entities": "Entidades",
+    "pages": "Páginas",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "loading": "Cargando...",
+    "retry": "Reintentar",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "refresh": "Refrescar",
+    "actions": "Acciones",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirmDelete": "¿Estás seguro de que deseas eliminar este elemento?",
+    "yes": "Sí",
+    "no": "No",
+    "contact": "Contacto",
+    "deal": "Trato",
+    "task": "Tarea",
+    "noRecords": "No hay registros",
+    "createFirst": "Crea tu primer"
+  },
+  "dashboard": {
+    "welcome": "Panel de control",
+    "welcomeSubtitle": "¡Bienvenido de nuevo! Esto es lo que está pasando hoy.",
+    "recentActivity": "Actividad reciente",
+    "noActivity": "No hay actividad todavía"
+  },
+  "auth": {
+    "signInTitle": "Inicia sesión en tu cuenta",
+    "registerTitle": "Crea una nueva cuenta",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre completo",
+    "createNewAccount": "Crea una nueva cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta? Inicia sesión"
+  },
+  "form": {
+    "creating": "Creando...",
+    "createdSuccess": "¡Creado con éxito!"
+  }
+}

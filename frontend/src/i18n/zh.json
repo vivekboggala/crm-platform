@@ -1,0 +1,50 @@
+{
+  "common": {
+    "dashboard": "仪表板",
+    "contacts": "联系人",
+    "deals": "交易",
+    "tasks": "任务",
+    "entities": "实体",
+    "pages": "页面",
+    "settings": "设置",
+    "logout": "登出",
+    "login": "登录",
+    "register": "注册",
+    "loading": "加载中...",
+    "retry": "重试",
+    "create": "创建",
+    "edit": "编辑",
+    "delete": "删除",
+    "refresh": "刷新",
+    "actions": "操作",
+    "save": "保存",
+    "cancel": "取消",
+    "confirmDelete": "您确定要删除此项目吗？",
+    "yes": "是",
+    "no": "否",
+    "contact": "联系人",
+    "deal": "交易",
+    "task": "任务",
+    "noRecords": "暂无记录",
+    "createFirst": "创建您的第一个"
+  },
+  "dashboard": {
+    "welcome": "仪表板",
+    "welcomeSubtitle": "欢迎回来！这是今天的动态。",
+    "recentActivity": "近期活动",
+    "noActivity": "暂无活动"
+  },
+  "auth": {
+    "signInTitle": "登录您的账户",
+    "registerTitle": "创建一个新账户",
+    "email": "电子邮件地址",
+    "password": "密码",
+    "name": "全名",
+    "createNewAccount": "创建一个新账户",
+    "alreadyHaveAccount": "已有账户？登录"
+  },
+  "form": {
+    "creating": "创建中...",
+    "createdSuccess": "创建成功！"
+  }
+}

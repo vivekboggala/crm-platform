@@ -1,0 +1,50 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "contacts": "Contacts",
+    "deals": "Deals",
+    "tasks": "Tasks",
+    "entities": "Entities",
+    "pages": "Pages",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "refresh": "Refresh",
+    "actions": "Actions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "yes": "Yes",
+    "no": "No",
+    "contact": "Contact",
+    "deal": "Deal",
+    "task": "Task",
+    "noRecords": "No records yet",
+    "createFirst": "Create your first"
+  },
+  "dashboard": {
+    "welcome": "Dashboard",
+    "welcomeSubtitle": "Welcome back! Here is what is happening today.",
+    "recentActivity": "Recent Activity",
+    "noActivity": "No activity yet"
+  },
+  "auth": {
+    "signInTitle": "Sign in to your account",
+    "registerTitle": "Create a new account",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "createNewAccount": "Create a new account",
+    "alreadyHaveAccount": "Already have an account? Sign in"
+  },
+  "form": {
+    "creating": "Creating...",
+    "createdSuccess": "Created successfully!"
+  }
+}

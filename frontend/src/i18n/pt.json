@@ -1,0 +1,50 @@
+{
+  "common": {
+    "dashboard": "Painel",
+    "contacts": "Contactos",
+    "deals": "Negócios",
+    "tasks": "Tarefas",
+    "entities": "Entidades",
+    "pages": "Páginas",
+    "settings": "Configurações",
+    "logout": "Sair",
+    "login": "Entrar",
+    "register": "Registar",
+    "loading": "A carregar...",
+    "retry": "Tentar novamente",
+    "create": "Criar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "refresh": "Atualizar",
+    "actions": "Ações",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirmDelete": "Tem certeza que deseja eliminar este item?",
+    "yes": "Sim",
+    "no": "Não",
+    "contact": "Contacto",
+    "deal": "Negócio",
+    "task": "Tarefa",
+    "noRecords": "Nenhum registo",
+    "createFirst": "Crie o seu primeiro"
+  },
+  "dashboard": {
+    "welcome": "Painel",
+    "welcomeSubtitle": "Bem-vindo de volta! Aqui está o que está a acontecer hoje.",
+    "recentActivity": "Atividade Recente",
+    "noActivity": "Sem atividade ainda"
+  },
+  "auth": {
+    "signInTitle": "Faça login na sua conta",
+    "registerTitle": "Criar uma nova conta",
+    "email": "Endereço de E-mail",
+    "password": "Senha",
+    "name": "Nome Completo",
+    "createNewAccount": "Criar uma nova conta",
+    "alreadyHaveAccount": "Já tem uma conta? Faça login"
+  },
+  "form": {
+    "creating": "A criar...",
+    "createdSuccess": "Criado com sucesso!"
+  }
+}
