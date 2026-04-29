@@ -152,7 +152,9 @@ export function AppShell({ route }: { route: string }) {
   // Redirect if non-admin or guest tries to access settings
   useEffect(() => {
     if (currentRoute === "settings" && user && (!isAdmin || (user as any).isGuest)) {
-      navigateTo("/");
+      setTimeout(() => {
+        navigateTo("/");
+      }, 0);
     }
   }, [currentRoute, user, isAdmin]);
 
@@ -363,7 +365,9 @@ function LoginPage({ onSuccess }: any) {
       if (res.success) { 
         setAuthToken((res.data as any).token); 
         showNotification(mode === "login" ? "Welcome back!" : "Account created successfully!", undefined, "success");
-        onSuccess(); 
+        setTimeout(() => {
+          onSuccess(); 
+        }, 100);
       }
       else {
         const errorMsg = (res as any).error || "Authentication failed";
@@ -388,7 +392,9 @@ function LoginPage({ onSuccess }: any) {
       if (res.success) { 
         setAuthToken((res.data as any).token); 
         showNotification("Welcome, Guest!", undefined, "success");
-        onSuccess(); 
+        setTimeout(() => {
+          onSuccess(); 
+        }, 100);
       }
       else {
         const errorMsg = (res as any).error || "Authentication failed";

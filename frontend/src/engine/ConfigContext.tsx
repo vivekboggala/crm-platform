@@ -23,28 +23,32 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConfig = async () => {
+  const fetchConfig = async (isMounted = () => true) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (isMounted()) {
+        setLoading(true);
+        setError(null);
+      }
       const res = await fetch(`${API_BASE}/api/config`);
       if (!res.ok) throw new Error(`Failed to load config: ${res.status}`);
       const json = await res.json();
       if (json.success) {
-        setConfig(json.data);
+        if (isMounted()) setConfig(json.data);
       } else {
         throw new Error(json.error || "Invalid config response");
       }
     } catch (err: any) {
       console.error("Config load failed:", err);
-      setError(err.message);
+      if (isMounted()) setError(err.message);
     } finally {
-      setLoading(false);
+      if (isMounted()) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchConfig();
+    let mounted = true;
+    fetchConfig(() => mounted);
+    return () => { mounted = false; };
   }, []);
 
   return (
