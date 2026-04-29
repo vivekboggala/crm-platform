@@ -22,7 +22,7 @@ const EntityConfigSchema = z.object({
   displayField: z.string().optional(),
 });
 
-const AuthMethodEnum = z.enum(["email", "google"]);
+const AuthMethodEnum = z.enum(["email", "google", "guest"]);
 
 const AuthConfigSchema = z.object({
   methods: z.array(AuthMethodEnum).min(1, "At least one auth method is required"),
