@@ -6,7 +6,6 @@ import DynamicDashboard from "@/components/DynamicDashboard";
 import CsvImporter from "@/components/CsvImporter";
 import UnknownFallback from "@/components/UnknownFallback";
 import SchemaEditor from "@/components/SchemaEditor";
-import SettingsManager from "@/components/SettingsManager";
 
 // ============================================================
 // Component Registry — maps config type strings to React components
@@ -19,7 +18,6 @@ const registry: Record<string, React.FC<any>> = {
   dashboard: DynamicDashboard,
   csv_import: CsvImporter,
   schema_editor: SchemaEditor,
-  settings_manager: SettingsManager,
 };
 
 /**
