@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import type { AppConfig } from "@/lib/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -23,9 +23,15 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConfig = async (isMounted = () => true) => {
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
+  const fetchConfig = async () => {
     try {
-      if (isMounted()) {
+      if (isMounted.current) {
         setLoading(true);
         setError(null);
       }
@@ -33,22 +39,20 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error(`Failed to load config: ${res.status}`);
       const json = await res.json();
       if (json.success) {
-        if (isMounted()) setConfig(json.data);
+        if (isMounted.current) setConfig(json.data);
       } else {
         throw new Error(json.error || "Invalid config response");
       }
     } catch (err: any) {
       console.error("Config load failed:", err);
-      if (isMounted()) setError(err.message);
+      if (isMounted.current) setError(err.message);
     } finally {
-      if (isMounted()) setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-    fetchConfig(() => mounted);
-    return () => { mounted = false; };
+    fetchConfig();
   }, []);
 
   return (

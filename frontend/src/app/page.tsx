@@ -76,12 +76,19 @@ export function AppShell({ route }: { route: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
+  const isMounted = useRef(true);
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   // Sync currentRoute with browser history
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
       const cleanRoute = path === "/" ? "" : path.replace(/^\//, "");
-      setCurrentRoute(cleanRoute);
+      setTimeout(() => {
+        if (isMounted.current) setCurrentRoute(cleanRoute);
+      }, 0);
     };
     
     // Sync on mount
@@ -95,25 +102,37 @@ export function AppShell({ route }: { route: string }) {
   const checkAuth = useCallback(async () => {
     const hasToken = isAuthenticated();
     if (!hasToken) {
-      setAuthenticated(false);
-      setAuthChecked(true);
+      setTimeout(() => {
+        if (isMounted.current) {
+          setAuthenticated(false);
+          setAuthChecked(true);
+        }
+      }, 0);
       return;
     }
     try {
       const res = await apiGet("/auth/me");
-      if (res.success) {
-        setUser(res.data as any);
-        if ((res.data as any).isAdmin) setIsAdmin(true);
-        setAuthenticated(true);
-      } else {
-        // Token is invalid/expired — clear it
-        clearAuthToken();
-        setAuthenticated(false);
-      }
+      setTimeout(() => {
+        if (!isMounted.current) return;
+        if (res.success) {
+          setUser(res.data as any);
+          if ((res.data as any).isAdmin) setIsAdmin(true);
+          setAuthenticated(true);
+        } else {
+          // Token is invalid/expired — clear it
+          clearAuthToken();
+          setAuthenticated(false);
+        }
+        setAuthChecked(true);
+      }, 0);
     } catch {
-      setAuthenticated(false);
+      setTimeout(() => {
+        if (isMounted.current) {
+          setAuthenticated(false);
+          setAuthChecked(true);
+        }
+      }, 0);
     }
-    setAuthChecked(true);
   }, []);
 
   useEffect(() => {
@@ -145,7 +164,9 @@ export function AppShell({ route }: { route: string }) {
 
   const navigateTo = (newRoute: string) => {
     const cleanRoute = newRoute === "/" ? "" : newRoute.replace(/^\//, "");
-    setCurrentRoute(cleanRoute);
+    setTimeout(() => {
+      if (isMounted.current) setCurrentRoute(cleanRoute);
+    }, 0);
     window.history.pushState({}, "", newRoute);
   };
 
