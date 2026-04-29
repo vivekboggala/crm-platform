@@ -71,7 +71,15 @@ async function sendWelcomeEmail(email: string, name: string) {
 }
 
 // --- Middleware ---
-app.use(cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
+app.use(cors({ 
+  origin: [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "https://crm-platform-frontend.vercel.app",
+    /\.vercel\.app$/ // Allow all Vercel preview/branch deployments
+  ], 
+  credentials: true 
+}));
 app.use(express.json());
 app.use(authMiddleware);
 
