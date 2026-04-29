@@ -355,6 +355,9 @@ app.post("/api/config", async (req: any, res) => {
     // --- Auto-sync schema with Postgres using raw SQL ---
     if (req.body?.database?.entities) {
       for (const entity of req.body.database.entities) {
+        // Skip reserved system names
+        if (["auth", "user", "users", "login", "register", "logout"].includes(entity.name.toLowerCase())) continue;
+
         // Ensure table exists to prevent ALTER TABLE from crashing
         try {
           await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "${entity.name}" (id TEXT PRIMARY KEY)`);

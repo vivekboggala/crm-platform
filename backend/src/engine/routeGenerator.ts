@@ -35,6 +35,12 @@ export function generateRoutes(): Router {
       continue;
     }
 
+    // Skip reserved system names to avoid route conflicts (e.g., /api/auth)
+    if (["auth", "user", "users", "login", "register", "logout"].includes(entity.name.toLowerCase())) {
+      console.warn(`⚠️  Entity "${entity.name}" uses a reserved system name — skipping route generation`);
+      continue;
+    }
+
     const basePath = `/${entity.name.toLowerCase()}`;
 
     // LIST — GET /api/contact
