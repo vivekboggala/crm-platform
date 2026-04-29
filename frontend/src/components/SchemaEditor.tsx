@@ -117,6 +117,7 @@ export default function SchemaEditor() {
           onChange={(e) => setConfigStr(e.target.value)}
           spellCheck={false}
           style={{ minHeight: "520px", border: "none" }}
+        />
       </div>
     </div>
   );
