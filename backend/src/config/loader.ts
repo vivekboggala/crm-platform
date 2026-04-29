@@ -13,21 +13,24 @@ let cachedConfig: AppConfig | null = null;
 export function loadConfig(configPath?: string): AppConfig {
   if (cachedConfig) return cachedConfig;
 
+  // Use absolute path relative to __dirname for reliability in production
   const resolvedPath = configPath
     || process.env.CONFIG_PATH
-    || path.resolve(__dirname, "../../../app.config.json");
+    || path.join(__dirname, "../../../app.config.json");
 
   const absolutePath = path.isAbsolute(resolvedPath)
     ? resolvedPath
     : path.resolve(process.cwd(), resolvedPath);
 
+  console.log(`🔍 Resolving config from: ${absolutePath}`);
+
   // --- Check if file exists ---
   if (!fs.existsSync(absolutePath)) {
-    console.error(`\n❌ Failed to load config file.`);
-    console.error(`   Path: ${absolutePath}`);
-    console.error(`   The file does not exist.`);
-    console.error(`\n   Create an app.config.json or set CONFIG_PATH environment variable.\n`);
-    process.exit(1);
+    const errorMsg = `❌ Config file not found at: ${absolutePath}`;
+    console.error(errorMsg);
+    // In production, we might want to throw instead of exit to allow the server to start (even if broken)
+    // but for this platform, config is mandatory.
+    throw new Error(errorMsg);
   }
 
   // --- Read and parse JSON ---
