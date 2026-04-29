@@ -32,7 +32,16 @@
     "welcome": "Panel de control",
     "welcomeSubtitle": "¡Bienvenido de nuevo! Esto es lo que está pasando hoy.",
     "recentActivity": "Actividad reciente",
-    "noActivity": "No hay actividad todavía"
+    "noActivity": "No hay actividad todavía",
+    "activityDesc": "La actividad aparecerá aquí a medida que cree registros.",
+    "quickActions": "Acciones rápidas",
+    "dataDistribution": "Distribución de datos",
+    "noDataYet": "Aún no hay datos. Crea registros para ver la distribución.",
+    "totalItems": "Artículos totales",
+    "new": "Nuevo",
+    "justNow": "Ahora mismo",
+    "minutesAgo": "min",
+    "hoursAgo": "h"
   },
   "auth": {
     "signInTitle": "Inicia sesión en tu cuenta",

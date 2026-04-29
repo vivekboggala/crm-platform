@@ -28,15 +28,18 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState("en");
+  const [locale, setLocaleState] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("app_locale");
+      if (saved && translations[saved]) return saved;
+    }
+    return "en";
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("app_locale");
-    if (saved && translations[saved]) {
-      setLocaleState(saved);
-      document.documentElement.lang = saved;
-    }
-  }, []);
+    // Sync document lang on mount (in case it wasn't set by state initializer)
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const setLocale = (newLocale: string) => {
     if (translations[newLocale]) {

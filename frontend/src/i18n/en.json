@@ -32,7 +32,16 @@
     "welcome": "Dashboard",
     "welcomeSubtitle": "Welcome back! Here is what is happening today.",
     "recentActivity": "Recent Activity",
-    "noActivity": "No activity yet"
+    "noActivity": "No activity yet",
+    "activityDesc": "Activity will appear here as you create records.",
+    "quickActions": "Quick Actions",
+    "dataDistribution": "Data Distribution",
+    "noDataYet": "No data yet. Create records to see distribution.",
+    "totalItems": "Total items",
+    "new": "New",
+    "justNow": "Just now",
+    "minutesAgo": "m ago",
+    "hoursAgo": "h ago"
   },
   "auth": {
     "signInTitle": "Sign in to your account",

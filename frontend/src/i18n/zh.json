@@ -32,7 +32,16 @@
     "welcome": "仪表板",
     "welcomeSubtitle": "欢迎回来！这是今天的动态。",
     "recentActivity": "近期活动",
-    "noActivity": "暂无活动"
+    "noActivity": "暂无活动",
+    "activityDesc": "活动将在您创建记录时显示在此处。",
+    "quickActions": "快速操作",
+    "dataDistribution": "数据分布",
+    "noDataYet": "暂无数据。创建记录以查看分布。",
+    "totalItems": "项目总数",
+    "new": "新建",
+    "justNow": "刚刚",
+    "minutesAgo": "分钟前",
+    "hoursAgo": "小时前"
   },
   "auth": {
     "signInTitle": "登录您的账户",

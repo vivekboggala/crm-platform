@@ -83,9 +83,9 @@ export default function DynamicDashboard() {
     const d = new Date(dateStr);
     const now = new Date();
     const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-    if (diff < 60) return "Just now";
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 60) return t("dashboard.justNow");
+    if (diff < 3600) return `${Math.floor(diff / 60)}${t("dashboard.minutesAgo")}`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}${t("dashboard.hoursAgo")}`;
     return d.toLocaleDateString();
   };
 
@@ -93,9 +93,10 @@ export default function DynamicDashboard() {
     const entity = config?.database.entities.find(e => e.name === activity.entityName);
     const displayField = entity?.displayField || "id";
     const value = activity.data[displayField] || activity.id.slice(0, 8);
+    const entityLabel = t(`common.${activity.entityName.toLowerCase()}`);
     return (
       <div style={{ fontSize: "0.875rem" }}>
-        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>New {activity.entityName}</span>: {value}
+        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{t("dashboard.new")} {entityLabel}</span>: {value}
       </div>
     );
   };
@@ -118,7 +119,7 @@ export default function DynamicDashboard() {
           <div className="card">
             <div className="card-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <IconActivity />
-              <span>Recent Activity</span>
+              <span>{t("dashboard.recentActivity")}</span>
             </div>
             
             {activities.length > 0 ? (
@@ -149,19 +150,19 @@ export default function DynamicDashboard() {
             ) : (
               <div className="empty-state" style={{ padding: "48px 24px" }}>
                 <EmptyActivityIcon />
-                <div style={{ color: "var(--text-secondary)", marginTop: 14, fontSize: "0.875rem", fontWeight: 500 }}>No activity yet</div>
-                <div style={{ color: "var(--text-muted)", marginTop: 4, fontSize: "0.8125rem" }}>Activity will appear here as you create records.</div>
+                <div style={{ color: "var(--text-secondary)", marginTop: 14, fontSize: "0.875rem", fontWeight: 500 }}>{t("dashboard.noActivity")}</div>
+                <div style={{ color: "var(--text-muted)", marginTop: 4, fontSize: "0.8125rem" }}>{t("dashboard.activityDesc")}</div>
               </div>
             )}
           </div>
 
           <div className="card">
-            <div className="card-title">Quick Actions</div>
+            <div className="card-title">{t("dashboard.quickActions")}</div>
             <div style={{ padding: 20, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
               {config?.database.entities.map(entity => (
                 <button key={entity.name} className="btn btn-ghost" style={{ border: "1px solid var(--border)", justifyContent: "flex-start", padding: "12px 16px" }} onClick={() => handleQuickAction(entity.name)}>
                   <IconPlus size={16} />
-                  <span>New {entity.name}</span>
+                  <span>{t("dashboard.new")} {t(`common.${entity.name.toLowerCase()}`)}</span>
                 </button>
               ))}
             </div>
@@ -170,12 +171,12 @@ export default function DynamicDashboard() {
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div className="card">
-            <div className="card-title">Data Distribution</div>
+            <div className="card-title">{t("dashboard.dataDistribution")}</div>
             <div style={{ padding: 24, display: "flex", flexDirection: "column", alignItems: "center" }}>
               {(() => {
                 const total = statItems.slice(0, 3).reduce((acc, item) => acc + (stats[item.key] || 0), 0);
                 if (total === 0 && !loading) {
-                  return <div style={{ padding: "20px 0", textAlign: "center" }}><div style={{ color: "var(--text-muted)", fontSize: "0.8125rem", marginBottom: 8 }}>No data yet. Create records to see distribution.</div></div>;
+                  return <div style={{ padding: "20px 0", textAlign: "center" }}><div style={{ color: "var(--text-muted)", fontSize: "0.8125rem", marginBottom: 8 }}>{t("dashboard.noDataYet")}</div></div>;
                 }
                 const c = 440;
                 let currentOffset = 0;
@@ -193,7 +194,7 @@ export default function DynamicDashboard() {
                         return <circle key={item.key} cx="80" cy="80" r="70" fill="none" stroke={color} strokeWidth="20" strokeDasharray={`${dash} ${c}`} strokeDashoffset={offset} transform="rotate(-90 80 80)" />;
                       })}
                       <text x="80" y="85" textAnchor="middle" fill="var(--text-primary)" style={{ fontSize: "1.25rem", fontWeight: 800 }}>{loading ? "..." : total}</text>
-                      <text x="80" y="102" textAnchor="middle" fill="var(--text-muted)" style={{ fontSize: "0.625rem", fontWeight: 600, textTransform: "uppercase" }}>Total items</text>
+                      <text x="80" y="102" textAnchor="middle" fill="var(--text-muted)" style={{ fontSize: "0.625rem", fontWeight: 600, textTransform: "uppercase" }}>{t("dashboard.totalItems")}</text>
                     </svg>
                     <div style={{ width: "100%", marginTop: 24, display: "flex", flexDirection: "column", gap: 10 }}>
                       {statItems.slice(0, 3).map((item, idx) => (

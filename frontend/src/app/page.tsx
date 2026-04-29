@@ -120,8 +120,10 @@ function AppShell({ route }: { route: string }) {
     window.location.href = "/";
   };
 
-  if (loading || !config || !authChecked) return <LoadingScreen t={t} />;
+  // Infinite loading fix: Handle error state properly and ensure config is present
   if (error) return <ErrorScreen t={t} />;
+  if (!authChecked || (loading && !config)) return <LoadingScreen t={t} />;
+  if (!config) return <ErrorScreen t={t} />; // Fallback if loading finished but config is still null
   if (!authenticated) return <LoginPage onSuccess={() => { setAuthenticated(true); window.location.reload(); }} />;
 
   const navigateTo = (newRoute: string) => {
@@ -212,7 +214,13 @@ function AppShell({ route }: { route: string }) {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
-            <div className="header-title">{activePage?.title || t("common.dashboard")}</div>
+            <div className="header-title">
+              {activePage 
+                ? (t(`common.${activePage.title.toLowerCase()}`) !== `common.${activePage.title.toLowerCase()}` 
+                    ? t(`common.${activePage.title.toLowerCase()}`) 
+                    : activePage.title)
+                : t("common.dashboard")}
+            </div>
           </div>
           <div className="header-actions">
             <LocaleSwitcher />
@@ -296,8 +304,8 @@ function ErrorScreen({ t }: any) {
           <line x1="24" y1="16" x2="24" y2="28" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"/>
           <circle cx="24" cy="33" r="1.5" fill="#dc2626"/>
         </svg>
-        <h2 style={{ marginBottom: 8, color: "var(--text-primary)", fontSize: "1.125rem" }}>Connection Error</h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: 24 }}>Unable to connect to the server. Please try again.</p>
+        <h2 style={{ marginBottom: 8, color: "var(--text-primary)", fontSize: "1.125rem" }}>{t("common.errorTitle") || "Connection Error"}</h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: 24 }}>{t("common.errorDesc") || "Unable to connect to the server. Please try again."}</p>
         <button className="btn btn-primary" onClick={() => window.location.reload()}>{t("common.retry")}</button>
       </div>
     </div>
