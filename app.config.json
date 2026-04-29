@@ -6,7 +6,7 @@
     "description": "A config-driven CRM for managing contacts and deals"
   },
   "auth": {
-    "methods": ["email", "google"],
+    "methods": ["email", "guest"],
     "userScoped": true
   },
   "database": {
@@ -16,12 +16,13 @@
         "icon": "users",
         "displayField": "name",
         "fields": [
-  { "name": "name", "type": "string", "required": true, "label": "Full Name", "placeholder": "John Doe" },
-  { "name": "email", "type": "email", "required": true, "label": "Email Address", "placeholder": "john@example.com" },
-  { "name": "phone", "type": "phone", "required": false, "label": "Phone Number", "placeholder": "+1 555-0123" },
-  { "name": "company", "type": "string", "required": false, "label": "Company", "placeholder": "Acme Inc." },
-  { "name": "notes", "type": "text", "required": false, "label": "Notes", "placeholder": "Additional details..." }
-]
+          { "name": "name", "type": "string", "required": true, "label": "Full Name", "placeholder": "John Doe" },
+          { "name": "email", "type": "email", "required": true, "label": "Email Address", "placeholder": "john@example.com" },
+          { "name": "phone", "type": "phone", "required": false, "label": "Phone Number", "placeholder": "+1 555-0123" },
+          { "name": "linkedin", "type": "string", "required": false, "label": "LinkedIn", "placeholder": "linkedin.com/in/username" },
+          { "name": "company", "type": "string", "required": false, "label": "Company", "placeholder": "Acme Inc." },
+          { "name": "notes", "type": "text", "required": false, "label": "Notes", "placeholder": "Additional details..." }
+        ]
       },
       {
         "name": "Deal",
@@ -55,9 +56,7 @@
       {
         "route": "/",
         "title": "Dashboard",
-        "components": [
-          { "type": "dashboard" }
-        ]
+        "components": [{ "type": "dashboard" }]
       },
       {
         "route": "/contacts",
