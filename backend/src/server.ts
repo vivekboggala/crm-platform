@@ -349,6 +349,17 @@ app.get("/api/config", async (req: any, res) => {
 
 app.post("/api/config", async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Authentication required" });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.isAdmin !== true || user.isGuest === true) {
+      res.status(403).json({ success: false, error: "Guests cannot modify configuration" });
+      return;
+    }
+
     const resolvedPath = process.env.CONFIG_PATH || path.resolve(__dirname, "../../../app.config.json");
     const absolutePath = path.isAbsolute(resolvedPath) ? resolvedPath : path.resolve(process.cwd(), resolvedPath);
     

@@ -149,6 +149,13 @@ export function AppShell({ route }: { route: string }) {
     window.history.pushState({}, "", newRoute);
   };
 
+  // Redirect if non-admin or guest tries to access settings
+  useEffect(() => {
+    if (currentRoute === "settings" && user && (!isAdmin || (user as any).isGuest)) {
+      navigateTo("/");
+    }
+  }, [currentRoute, user, isAdmin]);
+
   const activePage = config.ui.pages.find((p: any) => 
     currentRoute === "" ? p.route === "/" : `/${currentRoute}` === p.route
   ) || (currentRoute === "settings" ? { title: t("common.settings") } : null);
@@ -195,14 +202,16 @@ export function AppShell({ route }: { route: string }) {
             );
           })}
 
-          <button
-            className={`nav-link ${currentRoute === "settings" ? "active" : ""}`}
-            data-tooltip={t("common.settings")}
-            onClick={() => { navigateTo("/settings"); setMobileMenuOpen(false); }}
-          >
-            <IconSettings />
-            <span className="nav-label">{t("common.settings")}</span>
-          </button>
+          {isAdmin && !(user as any).isGuest && (
+            <button
+              className={`nav-link ${currentRoute === "settings" ? "active" : ""}`}
+              data-tooltip={t("common.settings")}
+              onClick={() => { navigateTo("/settings"); setMobileMenuOpen(false); }}
+            >
+              <IconSettings />
+              <span className="nav-label">{t("common.settings")}</span>
+            </button>
+          )}
         </nav>
 
         {/* Dark mode toggle — icon only */}
@@ -293,9 +302,11 @@ function UserMenu({ user, isAdmin, t, onLogout, onNavigate }: any) {
             <div className="dropdown-user-name">{user.name}</div>
             <div className="dropdown-user-email">{user.email}</div>
           </div>
-          <button className="dropdown-item" onClick={() => { onNavigate("/settings"); setIsOpen(false); }}>
-            <IconSettings size={16} /> {t("common.settings")}
-          </button>
+          {isAdmin && !user.isGuest && (
+            <button className="dropdown-item" onClick={() => { onNavigate("/settings"); setIsOpen(false); }}>
+              <IconSettings size={16} /> {t("common.settings")}
+            </button>
+          )}
           <button className="dropdown-item danger" onClick={onLogout}>
             <IconLogout size={16} /> {t("common.logout")}
           </button>
