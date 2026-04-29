@@ -61,7 +61,13 @@ export default function HomePage() {
 export function AppShell({ route }: { route: string }) {
   const { config, loading, error, refetch } = useConfig();
   const { t } = useTranslation();
-  const [currentRoute, setCurrentRoute] = useState(route);
+  const [currentRoute, setCurrentRoute] = useState(() => {
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      return path === "/" ? "" : path.replace(/^\//, "");
+    }
+    return route;
+  });
   const [authenticated, setAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [user, setUser] = useState<{ email: string; name: string } | null>(null);
@@ -77,6 +83,10 @@ export function AppShell({ route }: { route: string }) {
       const cleanRoute = path === "/" ? "" : path.replace(/^\//, "");
       setCurrentRoute(cleanRoute);
     };
+    
+    // Sync on mount
+    handlePopState();
+    
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
