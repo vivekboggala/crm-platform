@@ -5,16 +5,13 @@ import { ThemeProvider } from "@/engine/ThemeContext";
 import { I18nProvider, useTranslation } from "@/engine/I18nContext";
 import { isAuthenticated, clearAuthToken, apiGet } from "@/lib/api";
 import NotificationToast from "@/components/NotificationToast";
-import SchemaEditor from "@/components/SchemaEditor";
+import SettingsManager from "@/components/SettingsManager";
 
-// Simple icon for the back button
 function IconBack() {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
 }
 
 function SettingsContent() {
-  const { t } = useTranslation();
-  
   return (
     <div className="page-container" style={{ padding: "40px 20px", maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ marginBottom: 32 }}>
@@ -26,10 +23,8 @@ function SettingsContent() {
           <IconBack />
           <span>Back to Dashboard</span>
         </button>
-        <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px 0" }}>Platform Settings</h1>
-        <p style={{ color: "var(--text-secondary)", margin: 0 }}>Manage your application configuration, schema, and GitHub exports.</p>
       </div>
-      <SchemaEditor />
+      <SettingsManager />
     </div>
   );
 }

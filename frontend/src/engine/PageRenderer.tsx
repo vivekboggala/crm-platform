@@ -51,9 +51,9 @@ export default function PageRenderer({ route, isAdmin }: PageRendererProps) {
 
   if (!page && isAdmin && normalizedRoute === "/settings") {
     page = {
-      title: "Platform Settings",
+      title: "Settings",
       route: "/settings",
-      components: [{ type: "schema_editor" }]
+      components: [{ type: "settings_manager" }]
     };
   }
 
