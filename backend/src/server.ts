@@ -191,11 +191,11 @@ authRouter.post("/logout", async (req: any, res) => {
     const userId = req.userId;
     if (userId) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (user?.isGuest) {
+      if (user && user.isGuest === true) {
         // Delete all records and the user itself
-        await prisma.record.deleteMany({ where: { userId } });
-        await prisma.user.delete({ where: { id: userId } });
-        console.log(`🧹 Cleaned up guest user data for: ${userId}`);
+        const deletedRecords = await prisma.record.deleteMany({ where: { userId: user.id } });
+        await prisma.user.delete({ where: { id: user.id } });
+        console.log(`Guest cleanup: deleted ${deletedRecords.count} records and user`);
       }
     }
     res.json({ success: true });
