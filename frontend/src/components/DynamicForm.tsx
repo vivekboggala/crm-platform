@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useConfig } from "@/engine/ConfigContext";
 import { useTranslation } from "@/engine/I18nContext";
 import { apiPost } from "@/lib/api";
-import PhoneInputField from "@/components/PhoneInputField";
 import { showNotification } from "./NotificationToast";
 
 interface DynamicFormProps {
@@ -31,10 +30,14 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
     setSuccess(false);
 
     try {
-      const res = await apiPost(`/${entityName!.toLowerCase()}`, formData);
+      const res = await apiPost(`/${(entityName ?? "record").toLowerCase()}`, formData);
       if (res.success) {
         setSuccess(true);
-        showNotification(`${entityName} created`, `New ${entityName.toLowerCase()} added successfully!`, "success");
+        showNotification(
+          `${entityName ?? "Record"} created`,
+          `New ${(entityName ?? "record").toLowerCase()} added successfully!`,
+          "success"
+        );
         setFormData({});
         window.dispatchEvent(new CustomEvent(`refetch-${entityName}`));
         setTimeout(() => setSuccess(false), 3000);
@@ -61,7 +64,7 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
   return (
     <div className="card" style={{ padding: 0 }}>
       <div className="card-title" style={{ padding: "16px 24px", margin: 0 }}>
-        {title || `${t("common.create")} ${t(`common.${entityName?.toLowerCase()}`)}`}
+        {title || `${t("common.create")} ${entityName ?? ""}`}
       </div>
 
       <div style={{ padding: 24 }}>
@@ -77,7 +80,6 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
               const isPriority = field.name.toLowerCase() === "priority";
               const isBoolean = field.type === "boolean";
               const isTextarea = field.type === "text";
-              const isPhone = field.type === "phone";
               const isFullWidth = isPriority || isBoolean || isTextarea;
 
               return (
@@ -104,7 +106,7 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
                         {field.label || field.name}
                         {field.required && <span style={{ color: "var(--danger)", marginLeft: 4 }}>*</span>}
                       </label>
-                      
+
                       {isPriority ? (
                         <select
                           id={`field-${field.name}`}
@@ -124,13 +126,7 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
                           value={formData[field.name] || ""}
                           placeholder={field.placeholder}
                           onChange={(e) => handleChange(field.name, e.target.value, field.type)}
-                        />
-                      ) : isPhone ? (
-                        <PhoneInputField
-                          id={`field-${field.name}`}
-                          value={formData[field.name] || ""}
-                          onChange={(val) => handleChange(field.name, val, "string")}
-                          placeholder={field.placeholder}
+                          style={{ minHeight: 120 }}
                         />
                       ) : (
                         <input
@@ -148,17 +144,25 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
                       )}
                     </>
                   )}
-                  {errors[field.name] && <div style={{ color: "var(--danger)", fontSize: "0.75rem", marginTop: 4 }}>{errors[field.name]}</div>}
+                  {errors[field.name] && (
+                    <div style={{ color: "var(--danger)", fontSize: "0.75rem", marginTop: 4 }}>
+                      {errors[field.name]}
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {errors._form && <div style={{ color: "var(--danger)", fontSize: "0.875rem", marginTop: 16 }}>{errors._form}</div>}
+          {errors._form && (
+            <div style={{ color: "var(--danger)", fontSize: "0.875rem", marginTop: 16 }}>
+              {errors._form}
+            </div>
+          )}
 
           <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
             <button type="submit" className="btn btn-primary" disabled={saving} style={{ minWidth: 160 }}>
-              {saving ? t("form.creating") : `${t("common.create")} ${t(`common.${entityName?.toLowerCase()}`)}`}
+              {saving ? t("form.creating") : `${t("common.create")} ${entityName ?? ""}`}
             </button>
           </div>
         </form>
