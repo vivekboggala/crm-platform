@@ -167,6 +167,44 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
+authRouter.post("/guest", async (req, res) => {
+  try {
+    const randomId = crypto.randomBytes(4).toString("hex");
+    const email = `guest-${randomId}@guest.com`;
+    const name = `Guest-${randomId}`;
+    const password = crypto.randomBytes(8).toString("hex");
+    const hashed = await bcrypt.hash(password, 10);
+    
+    const user = await prisma.user.create({
+      data: { id: uuidv4(), email, password: hashed, name, isAdmin: false, isGuest: true },
+    });
+    
+    const token = generateToken(user.id, user.email);
+    res.status(201).json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+authRouter.post("/logout", async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    if (userId) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (user?.isGuest) {
+        // Delete all records and the user itself
+        await prisma.record.deleteMany({ where: { userId } });
+        await prisma.user.delete({ where: { id: userId } });
+        console.log(`🧹 Cleaned up guest user data for: ${userId}`);
+      }
+    }
+    res.json({ success: true });
+  } catch (err: any) {
+    console.error("Logout error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 authRouter.post("/google", async (req, res) => {
   try {
     const { email, name, googleId } = req.body;

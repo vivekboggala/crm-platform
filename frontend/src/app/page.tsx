@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { ConfigProvider, useConfig } from "@/engine/ConfigContext";
 import { I18nProvider, useTranslation } from "@/engine/I18nContext";
 import { ThemeProvider, useTheme } from "@/engine/ThemeContext";
-import { isAuthenticated, clearAuthToken, apiGet } from "@/lib/api";
+import { isAuthenticated, clearAuthToken, apiGet, apiPost } from "@/lib/api";
 import NotificationToast from "@/components/NotificationToast";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import PageRenderer from "@/engine/PageRenderer";
@@ -122,6 +122,9 @@ export function AppShell({ route }: { route: string }) {
 
   // Full logout: clear localStorage + NextAuth session + hard redirect
   const handleLogout = async () => {
+    try {
+      await apiPost("/auth/logout", {});
+    } catch {}
     clearAuthToken();
     try {
       const { signOut } = await import("next-auth/react");
@@ -364,6 +367,31 @@ function LoginPage({ onSuccess }: any) {
     finally { setLoading(false); }
   };
 
+  const handleGuestLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const { apiPost, setAuthToken } = await import("@/lib/api");
+      const { showNotification } = await import("@/components/NotificationToast");
+      const res = await apiPost("/auth/guest", {});
+      if (res.success) { 
+        setAuthToken((res.data as any).token); 
+        showNotification("Welcome, Guest!", undefined, "success");
+        onSuccess(); 
+      }
+      else {
+        const errorMsg = (res as any).error || "Authentication failed";
+        setError(errorMsg);
+        showNotification("Authentication failed", errorMsg, "error");
+      }
+    } catch (err: any) { 
+      setError(err.message); 
+      const { showNotification } = await import("@/components/NotificationToast");
+      showNotification("System error", err.message, "error");
+    }
+    finally { setLoading(false); }
+  };
+
   return (
     <div className="login-page">
       <div className="card" style={{ width: "100%", maxWidth: 420, padding: "40px 32px" }}>
@@ -399,6 +427,21 @@ function LoginPage({ onSuccess }: any) {
             {loading ? t("common.loading") : mode === "login" ? t("common.login") : t("common.register")}
           </button>
         </form>
+
+        <div style={{ display: "flex", alignItems: "center", margin: "24px 0", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          <span style={{ padding: "0 12px" }}>or</span>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        </div>
+
+        <button 
+          onClick={handleGuestLogin}
+          disabled={loading}
+          style={{ width: "100%", padding: "10px 16px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-card)", color: "var(--text-primary)", fontWeight: 500, fontSize: "0.9375rem", cursor: "pointer" }}
+        >
+          Continue as Guest
+        </button>
+
         <div style={{ textAlign: "center", marginTop: 20 }}>
           <button
             id="auth-mode-toggle"
