@@ -23,7 +23,7 @@ JWT_SECRET="your-secret-key"
 PORT=4000
 
 # Optional features:
-GITHUB_TOKEN="ghp_..."     # For config export to GitHub Gist
+
 SMTP_HOST="smtp.example.com"  # For email notifications
 ```
 
@@ -112,15 +112,11 @@ This means adding a new entity in config requires **zero database migrations**.
 - CSS custom properties — every component adapts
 - Sun/moon icon toggle in sidebar footer
 
-#### 5. GitHub Export & Integration
-- Export `app.config.json` as a private GitHub Gist
-- Generate full project structure and push to a new GitHub repository
-- Requires `GITHUB_TOKEN` env var
 
 ### Authentication
 - Email + password (SHA-256 hashed, JWT sessions, 7-day expiry)
 - User-scoped data: each user only sees their own records
-- Settings page (config editor), config save/export: Accessible to all authenticated users
+- Settings page (config editor), config save: Accessible to all authenticated users
 
 ### PWA
 - `manifest.json` + service worker (`sw.js`)
