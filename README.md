@@ -128,6 +128,17 @@ This means adding a new entity in config requires **zero database migrations**.
 
 ---
 
+## Deployment
+
+### Frontend (Vercel)
+- The frontend is configured for deployment on Vercel.
+- Environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`) should be set in the Vercel dashboard.
+
+### Backend (Railway/Render)
+- The backend should be deployed to a service like Railway or Render that supports long-running Node.js processes and PostgreSQL.
+
+---
+
 ## Extensibility
 
 ### Adding a new UI component (1 line)
