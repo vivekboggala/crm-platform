@@ -55,6 +55,18 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
   };
 
   const handleChange = (fieldName: string, value: any, fieldType: string) => {
+    if (fieldType === "phone" && value !== "") {
+      if (!/^[0-9+\-\s()]+$/.test(value)) {
+        setErrors((prev) => ({ ...prev, [fieldName]: "Only digits, +, -, spaces, and parentheses are allowed" }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [fieldName]: fieldType === "number" ? (value === "" ? "" : Number(value)) : value,
@@ -132,10 +144,15 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
                         <input
                           id={`field-${field.name}`}
                           type={
+                            field.type === "phone" ? "tel" :
                             field.type === "number" ? "number" :
                             field.type === "date" ? "date" :
                             field.type === "email" ? "email" : "text"
                           }
+                          {...(field.type === "phone" ? {
+                            inputMode: "numeric",
+                            pattern: "[0-9+\\-\\s()]+"
+                          } : {})}
                           className="form-input"
                           value={formData[field.name] ?? ""}
                           placeholder={field.placeholder}
