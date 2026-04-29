@@ -29,6 +29,7 @@ export default function RootLayout({
           toggled it before (saved in localStorage). Default is light.
         */}
         <script
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

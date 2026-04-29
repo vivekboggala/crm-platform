@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { ConfigProvider, useConfig } from "@/engine/ConfigContext";
 import { I18nProvider, useTranslation } from "@/engine/I18nContext";
 import { ThemeProvider, useTheme } from "@/engine/ThemeContext";
-import { isAuthenticated, clearAuthToken } from "@/lib/api";
+import { isAuthenticated, clearAuthToken, apiGet } from "@/lib/api";
 import NotificationToast from "@/components/NotificationToast";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import PageRenderer from "@/engine/PageRenderer";
@@ -81,34 +81,33 @@ function AppShell({ route }: { route: string }) {
   }, []);
 
   // Check auth on every page load — validate token via /auth/me
-  useEffect(() => {
-    async function checkAuth() {
-      const hasToken = isAuthenticated();
-      if (!hasToken) {
-        setAuthenticated(false);
-        setAuthChecked(true);
-        return;
-      }
-      try {
-        const { apiGet } = await import("@/lib/api");
-        const res = await apiGet("/auth/me");
-        if (res.success) {
-          setUser(res.data as any);
-          if ((res.data as any).isAdmin) setIsAdmin(true);
-          setAuthenticated(true);
-        } else {
-          // Token is invalid/expired — clear it
-          const { clearAuthToken } = await import("@/lib/api");
-          clearAuthToken();
-          setAuthenticated(false);
-        }
-      } catch {
-        setAuthenticated(false);
-      }
+  const checkAuth = useCallback(async () => {
+    const hasToken = isAuthenticated();
+    if (!hasToken) {
+      setAuthenticated(false);
       setAuthChecked(true);
+      return;
     }
-    checkAuth();
+    try {
+      const res = await apiGet("/auth/me");
+      if (res.success) {
+        setUser(res.data as any);
+        if ((res.data as any).isAdmin) setIsAdmin(true);
+        setAuthenticated(true);
+      } else {
+        // Token is invalid/expired — clear it
+        clearAuthToken();
+        setAuthenticated(false);
+      }
+    } catch {
+      setAuthenticated(false);
+    }
+    setAuthChecked(true);
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   // Full logout: clear localStorage + NextAuth session + hard redirect
   const handleLogout = async () => {
@@ -120,11 +119,15 @@ function AppShell({ route }: { route: string }) {
     window.location.href = "/";
   };
 
+  const handleLoginSuccess = useCallback(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   // Infinite loading fix: Handle error state properly and ensure config is present
   if (error) return <ErrorScreen t={t} />;
   if (!authChecked || (loading && !config)) return <LoadingScreen t={t} />;
   if (!config) return <ErrorScreen t={t} />; // Fallback if loading finished but config is still null
-  if (!authenticated) return <LoginPage onSuccess={() => { setAuthenticated(true); window.location.reload(); }} />;
+  if (!authenticated) return <LoginPage onSuccess={handleLoginSuccess} />;
 
   const navigateTo = (newRoute: string) => {
     const cleanRoute = newRoute === "/" ? "" : newRoute.replace(/^\//, "");
@@ -215,7 +218,7 @@ function AppShell({ route }: { route: string }) {
               </svg>
             </button>
             <div className="header-title">
-              {activePage 
+              {activePage && activePage.title 
                 ? (t(`common.${activePage.title.toLowerCase()}`) !== `common.${activePage.title.toLowerCase()}` 
                     ? t(`common.${activePage.title.toLowerCase()}`) 
                     : activePage.title)

@@ -69,15 +69,17 @@ async function sendWelcomeEmail(email: string, name: string) {
 }
 
 // --- Middleware ---
-app.use(cors({ origin: "*", credentials: true }));
+app.use(cors({ origin: ["http://localhost:3000", "http://127.0.0.1:3000"], credentials: true }));
 app.use(express.json());
 app.use(authMiddleware);
 
 // --- SSE endpoint for notifications ---
 app.get("/api/events", sseHandler);
 
-// --- Auth routes ---
-app.post("/api/auth/register", async (req, res) => {
+// --- Auth Router ---
+const authRouter = express.Router();
+
+authRouter.post("/register", async (req, res) => {
   try {
     const { email, password, name } = req.body;
     if (!email || !password) {
@@ -107,7 +109,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 });
 
-app.post("/api/auth/login", async (req, res) => {
+authRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -119,7 +121,6 @@ app.post("/api/auth/login", async (req, res) => {
       res.status(401).json({ success: false, error: "Invalid email or password" });
       return;
     }
-    // If user signed up via Google (no password), guide them
     if (!user.password) {
       res.status(401).json({ success: false, error: "This account uses Google login. Please sign in with Google." });
       return;
@@ -130,34 +131,15 @@ app.post("/api/auth/login", async (req, res) => {
       return;
     }
     const token = generateToken(user.id, user.email);
-    console.log(`Existing user login (Email), skipping email for: ${email}`);
     res.json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-
-
-app.get("/api/auth/me", async (req: any, res) => {
-  if (!req.userId) {
-    res.status(401).json({ success: false, error: "Not authenticated" });
-    return;
-  }
-  const user = await prisma.user.findUnique({ where: { id: req.userId } });
-  if (!user) {
-    res.status(404).json({ success: false, error: "User not found" });
-    return;
-  }
-  res.json({ success: true, data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } });
-});
-
-// --- Google OAuth endpoint (called by NextAuth after Google login) ---
-app.post("/api/auth/google", async (req, res) => {
+authRouter.post("/google", async (req, res) => {
   try {
     const { email, name, googleId } = req.body;
-
-    // Check if user already exists by googleId OR email
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -168,17 +150,12 @@ app.post("/api/auth/google", async (req, res) => {
     });
 
     if (existingUser) {
-      // User already exists
-      console.log(`Existing user login (Google), skipping email for: ${email}`);
-      
-      // Update googleId if it wasn't set (e.g. first time OAuth for existing email user)
       if (!existingUser.googleId && googleId) {
         await prisma.user.update({
           where: { id: existingUser.id },
           data: { googleId },
         });
       }
-
       const token = generateToken(existingUser.id, existingUser.email);
       res.json({
         success: true,
@@ -190,8 +167,6 @@ app.post("/api/auth/google", async (req, res) => {
       return;
     }
 
-    // New user — auto-register via Google
-    console.log(`New user created (Google), sending welcome email to: ${email}`);
     const count = await prisma.user.count();
     const isAdmin = count === 0;
     const user = await prisma.user.create({
@@ -204,9 +179,7 @@ app.post("/api/auth/google", async (req, res) => {
         isAdmin,
       },
     });
-
     sendWelcomeEmail(email, name || email.split("@")[0]);
-
     const token = generateToken(user.id, user.email);
     res.status(201).json({
       success: true,
@@ -216,6 +189,22 @@ app.post("/api/auth/google", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Protect /me with authMiddleware
+authRouter.get("/me", authMiddleware, async (req: any, res) => {
+  if (!req.userId) {
+    res.status(401).json({ success: false, error: "Not authenticated" });
+    return;
+  }
+  const user = await prisma.user.findUnique({ where: { id: req.userId } });
+  if (!user) {
+    res.status(404).json({ success: false, error: "User not found" });
+    return;
+  }
+  res.json({ success: true, data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } });
+});
+
+app.use("/api/auth", authRouter);
 
 // --- Stats route ---
 app.get("/api/stats", async (req: any, res) => {

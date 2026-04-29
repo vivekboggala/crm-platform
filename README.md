@@ -1,10 +1,10 @@
-# ⚡ Config-Driven App Platform — Base44 Engine
+# Config-Driven App Platform — Base44 Engine
 
 > A platform where a **single JSON file** defines an entire application — UI, APIs, database schema, auth, and notifications. No hardcoding. Everything generated at runtime.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - **Node.js** v18+
@@ -42,7 +42,7 @@ npm run dev    # Starts frontend (port 3000) + backend (port 4000)
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 app.config.json (Single Source of Truth)
@@ -71,7 +71,7 @@ This means adding a new entity in config requires **zero database migrations**.
 
 ---
 
-## ✅ Features Implemented
+## Features Implemented
 
 ### Core Platform
 | Feature | How It Works |
@@ -87,32 +87,32 @@ This means adding a new entity in config requires **zero database migrations**.
 
 ### Mandatory Features (3+ implemented)
 
-#### 1. 🌍 Multi-Language / Localization
+#### 1. Multi-Language / Localization
 - 4 languages: English, Spanish, Portuguese, Chinese
 - Dynamic switching via locale switcher in header
 - Persisted to `localStorage`
 - Falls back to English for missing keys
 - `document.documentElement.lang` updated for accessibility
 
-#### 2. 📥 CSV Import System
+#### 2. CSV Import System
 - Drag-and-drop or click-to-browse
 - Auto-maps CSV columns to entity fields (case-insensitive)
 - Validates each row against entity schema
 - Reports imported/failed counts + per-row error details
 - Triggers table refresh via custom browser event
 
-#### 3. 🔔 Event-Based Notifications (SSE)
+#### 3. Event-Based Notifications (SSE)
 - Config-driven: `config.notifications[].on` triggers
 - Real-time toast notifications via Server-Sent Events
 - Optional email via SMTP (Nodemailer) if configured
 - No WebSocket complexity
 
-#### 4. 🌙 Dark Mode
+#### 4. Dark Mode
 - Full dark/light toggle with `localStorage` persistence
 - CSS custom properties — every component adapts
 - Sun/moon icon toggle in sidebar footer
 
-#### 5. 📤 GitHub Export & Integration
+#### 5. GitHub Export & Integration
 - Export `app.config.json` as a private GitHub Gist
 - Generate full project structure and push to a new GitHub repository
 - Requires `GITHUB_TOKEN` env var
@@ -120,7 +120,7 @@ This means adding a new entity in config requires **zero database migrations**.
 ### Authentication
 - Email + password (SHA-256 hashed, JWT sessions, 7-day expiry)
 - User-scoped data: each user only sees their own records
-- Settings page (config editor), config save/export: Accessible to all authenticated users to allow for immediate feature additions after generation.
+- Settings page (config editor), config save/export: Accessible to all authenticated users
 
 ### PWA
 - `manifest.json` + service worker (`sw.js`)
@@ -128,7 +128,7 @@ This means adding a new entity in config requires **zero database migrations**.
 
 ---
 
-## 🔌 Extensibility
+## Extensibility
 
 ### Adding a new UI component (1 line)
 ```typescript
@@ -162,7 +162,7 @@ Then use it in config:
 
 ---
 
-## ⚠️ Edge Cases & Tradeoffs
+## Edge Cases & Tradeoffs
 
 ### Config Robustness
 - **Unknown `type` in components[]** → renders `UnknownFallback` with the unrecognised type shown
@@ -175,9 +175,9 @@ Then use it in config:
 - JWT tokens stored in `localStorage` — tradeoff for simplicity vs cookie-based security
 
 ### Database
-- JSONB stores all entity data — schema mismatches are ignored (extra fields stripped, missing optional fields allowed)
-- Adding a field to an entity in config is **backward-compatible** (old records simply lack the field)
-- Removing a field is safe — old data is preserved in JSONB but not exposed in API responses
+- JSONB stores all entity data — schema mismatches are ignored
+- Adding a field to an entity in config is **backward-compatible**
+- Removing a field is safe — old data is preserved in JSONB but not exposed
 
 ### Config Hot-reload Limitation
 - Adding a **new entity** to `apis[]` requires a backend restart because Express routes are registered at startup
@@ -185,7 +185,7 @@ Then use it in config:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 /
