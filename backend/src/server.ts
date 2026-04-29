@@ -71,13 +71,29 @@ async function sendWelcomeEmail(email: string, name: string) {
 }
 
 // --- Middleware ---
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "http://127.0.0.1:3000",
+  "https://crm-platform-frontend.vercel.app",
+  process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
 app.use(cors({ 
-  origin: [
-    "http://localhost:3000", 
-    "http://127.0.0.1:3000",
-    "https://crm-platform-frontend.vercel.app",
-    /\.vercel\.app$/ // Allow all Vercel preview/branch deployments
-  ], 
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === "string") return allowed === origin;
+      return false; // Regex or other types could be added here
+    }) || /\.vercel\.app$/.test(origin); // Keep allowing Vercel preview URLs
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true 
 }));
 app.use(express.json());

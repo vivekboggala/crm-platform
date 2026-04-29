@@ -13,6 +13,11 @@ export interface AuthRequest extends Request {
 }
 
 export function authMiddleware(req: AuthRequest, _res: Response, next: NextFunction) {
+  const publicPaths = ["/api/auth/login", "/api/auth/register", "/api/auth/google", "/manifest.json", "/favicon.ico"];
+  if (publicPaths.includes(req.path)) {
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
