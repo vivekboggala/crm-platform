@@ -313,14 +313,44 @@ app.post("/api/config", async (req: any, res) => {
   try {
     const resolvedPath = process.env.CONFIG_PATH || path.resolve(__dirname, "../../../app.config.json");
     const absolutePath = path.isAbsolute(resolvedPath) ? resolvedPath : path.resolve(process.cwd(), resolvedPath);
+    
+    // --- Auto-sync schema with Postgres using raw SQL ---
+    if (req.body?.database?.entities) {
+      for (const entity of req.body.database.entities) {
+        // Ensure table exists to prevent ALTER TABLE from crashing
+        try {
+          await prisma.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "${entity.name}" (id TEXT PRIMARY KEY)`);
+        } catch (dbErr: any) {
+          throw new Error(`Database error creating table "${entity.name}": ${dbErr.message}`);
+        }
+
+        // Add columns for each field
+        if (entity.fields && Array.isArray(entity.fields)) {
+          for (const field of entity.fields) {
+            let pgType = "TEXT";
+            if (field.type === "number") pgType = "DOUBLE PRECISION";
+            else if (field.type === "boolean") pgType = "BOOLEAN";
+            else if (field.type === "date") pgType = "TIMESTAMP";
+
+            try {
+              await prisma.$executeRawUnsafe(`ALTER TABLE "${entity.name}" ADD COLUMN IF NOT EXISTS "${field.name}" ${pgType}`);
+            } catch (dbErr: any) {
+              throw new Error(`Database error adding column "${field.name}" to "${entity.name}": ${dbErr.message}`);
+            }
+          }
+        }
+      }
+    }
+
     fs.writeFileSync(absolutePath, JSON.stringify(req.body, null, 2), "utf-8");
     
     // Hot-reload config and routes
     reloadConfig();
     apiRoutes = generateRoutes();
     
-    res.json({ success: true, data: "Configuration saved and reloaded successfully." });
+    res.json({ success: true, data: "Configuration saved and schema synced successfully." });
   } catch (err: any) {
+    console.error("❌ Config sync error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
