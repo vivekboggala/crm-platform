@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useConfig } from "@/engine/ConfigContext";
+import { showNotification } from "./NotificationToast";
 
 // --- Icons ---
 function IconCode({ size = 16 }: { size?: number }) {
@@ -48,13 +49,18 @@ export default function SchemaEditor() {
       const res = await apiPost("/config", parsed);
       if (res.success) {
         setSuccess("Configuration saved and reloaded.");
+        showNotification("Configuration saved", "The application has been reloaded with the new configuration.", "success");
         setLastSaved(new Date().toLocaleTimeString());
         await refetch();
       } else {
-        setError((res as any).error || "Failed to save configuration.");
+        const errorMsg = (res as any).error || "Failed to save configuration.";
+        setError(errorMsg);
+        showNotification("Save failed", errorMsg, "error");
       }
     } catch (err: any) {
-      setError("Invalid JSON: " + err.message);
+      const errorMsg = "Invalid JSON: " + err.message;
+      setError(errorMsg);
+      showNotification("JSON Error", errorMsg, "error");
     } finally {
       setSaving(false);
     }
@@ -70,11 +76,15 @@ export default function SchemaEditor() {
       if (res.success && (res.data as any).url) {
         setGistUrl((res.data as any).url);
         setSuccess("Exported to GitHub Gist.");
+        showNotification("Export successful", "Configuration exported to GitHub Gist.", "success");
       } else {
-        setError((res as any).error || "Failed to export gist.");
+        const errorMsg = (res as any).error || "Failed to export gist.";
+        setError(errorMsg);
+        showNotification("Export failed", errorMsg, "error");
       }
     } catch (err: any) {
       setError(err.message);
+      showNotification("Export error", err.message, "error");
     } finally {
       setSaving(false);
     }
@@ -90,11 +100,15 @@ export default function SchemaEditor() {
       if (res.success && (res.data as any).url) {
         setGistUrl((res.data as any).url);
         setSuccess("Full project exported to GitHub repository!");
+        showNotification("Export successful", "Full project repository created on GitHub.", "success");
       } else {
-        setError((res as any).error || "Failed to export repository.");
+        const errorMsg = (res as any).error || "Failed to export repository.";
+        setError(errorMsg);
+        showNotification("Export failed", errorMsg, "error");
       }
     } catch (err: any) {
       setError(err.message);
+      showNotification("Export error", err.message, "error");
     } finally {
       setSaving(false);
     }

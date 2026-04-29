@@ -4,6 +4,7 @@ import { useConfig } from "@/engine/ConfigContext";
 import { useTranslation } from "@/engine/I18nContext";
 import { apiGet, apiDelete, apiPost, apiPut } from "@/lib/api";
 import PhoneInputField from "@/components/PhoneInputField";
+import { showNotification } from "@/components/NotificationToast";
 
 interface DynamicTableProps {
   entity?: string;
@@ -73,10 +74,17 @@ export default function DynamicTable({ entity: entityName }: DynamicTableProps) 
 
   const handleDelete = async (id: string) => {
     if (!confirm(t("common.confirmDelete"))) return;
-    const res = await apiDelete(`/${entityName!.toLowerCase()}/${id}`);
-    if (res.success) {
-      fetchData();
-      window.dispatchEvent(new CustomEvent("records-updated"));
+    try {
+      const res = await apiDelete(`/${entityName!.toLowerCase()}/${id}`);
+      if (res.success) {
+        showNotification(`${entityName} deleted`, undefined, "success");
+        fetchData();
+        window.dispatchEvent(new CustomEvent("records-updated"));
+      } else {
+        showNotification("Delete failed", (res as any).error, "error");
+      }
+    } catch (err: any) {
+      showNotification("Delete error", err.message, "error");
     }
   };
 
@@ -228,14 +236,18 @@ function CreateModal({ entityName, entityConfig, t, onClose, onCreated }: any) {
       const res = await apiPost(`/${entityName.toLowerCase()}`, formData);
       if (res.success) {
         setSuccess(true);
+        showNotification(`${entityName} created`, `New ${entityName.toLowerCase()} added successfully!`, "success");
         window.dispatchEvent(new CustomEvent(`refetch-${entityName}`));
         window.dispatchEvent(new CustomEvent("records-updated"));
         setTimeout(() => onCreated(), 600);
       } else {
-        setErrors((res as any).details || { _form: (res as any).error });
+        const errorMsg = (res as any).error || "Failed to create record";
+        setErrors((res as any).details || { _form: errorMsg });
+        showNotification("Creation failed", errorMsg, "error");
       }
     } catch (err: any) {
       setErrors({ _form: err.message });
+      showNotification("Creation error", err.message, "error");
     } finally {
       setSaving(false);
     }
@@ -386,14 +398,18 @@ function EditModal({ entityName, entityConfig, recordId, existingData, t, onClos
       const res = await apiPut(`/${entityName.toLowerCase()}/${recordId}`, formData);
       if (res.success) {
         setSuccess(true);
+        showNotification(`${entityName} updated`, `${entityName} record updated successfully`, "success");
         window.dispatchEvent(new CustomEvent(`refetch-${entityName}`));
         window.dispatchEvent(new CustomEvent("records-updated"));
         setTimeout(() => onUpdated(), 600);
       } else {
-        setErrors((res as any).details || { _form: (res as any).error });
+        const errorMsg = (res as any).error || "Failed to update record";
+        setErrors((res as any).details || { _form: errorMsg });
+        showNotification("Update failed", errorMsg, "error");
       }
     } catch (err: any) {
       setErrors({ _form: err.message });
+      showNotification("Update error", err.message, "error");
     } finally {
       setSaving(false);
     }

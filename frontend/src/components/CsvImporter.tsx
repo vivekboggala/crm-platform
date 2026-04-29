@@ -2,6 +2,7 @@
 import React, { useState, useRef } from "react";
 import { apiUpload } from "@/lib/api";
 import type { CsvImportResult } from "@/lib/types";
+import { showNotification } from "./NotificationToast";
 
 interface CsvImporterProps {
   entity?: string;
@@ -21,6 +22,7 @@ export default function CsvImporter({ entity: entityName, title }: CsvImporterPr
   const handleFile = (f: File) => {
     if (!f.name.endsWith(".csv")) {
       setError("Please upload a .csv file");
+      showNotification("Invalid file type", "Please upload a .csv file", "error");
       return;
     }
     setFile(f);
@@ -35,14 +37,26 @@ export default function CsvImporter({ entity: entityName, title }: CsvImporterPr
     try {
       const res = await apiUpload("/import/csv", file, { entity: entityName });
       if (res.success) {
-        setResult(res.data as CsvImportResult);
+        const r = res.data as CsvImportResult;
+        setResult(r);
         setFile(null);
         window.dispatchEvent(new CustomEvent(`refetch-${entityName}`));
+
+        if (r.failed === 0) {
+          showNotification("Import successful", `Successfully imported ${r.imported} ${entityName} records`, "success");
+        } else if (r.imported > 0) {
+          showNotification("Partial import", `Imported ${r.imported} records, ${r.failed} failed`, "warning");
+        } else {
+          showNotification("Import failed", `All ${r.failed} records failed validation`, "error");
+        }
       } else {
-        setError((res as any).error);
+        const errorMsg = (res as any).error || "Failed to import CSV";
+        setError(errorMsg);
+        showNotification("Import error", errorMsg, "error");
       }
     } catch (err: any) {
       setError(err.message);
+      showNotification("System error", err.message, "error");
     } finally {
       setImporting(false);
     }

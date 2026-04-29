@@ -4,6 +4,7 @@ import { useConfig } from "@/engine/ConfigContext";
 import { useTranslation } from "@/engine/I18nContext";
 import { apiPost } from "@/lib/api";
 import PhoneInputField from "@/components/PhoneInputField";
+import { showNotification } from "./NotificationToast";
 
 interface DynamicFormProps {
   entity?: string;
@@ -33,14 +34,18 @@ export default function DynamicForm({ entity: entityName, action = "create", tit
       const res = await apiPost(`/${entityName!.toLowerCase()}`, formData);
       if (res.success) {
         setSuccess(true);
+        showNotification(`${entityName} created`, `New ${entityName.toLowerCase()} added successfully!`, "success");
         setFormData({});
         window.dispatchEvent(new CustomEvent(`refetch-${entityName}`));
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        setErrors((res as any).details || { _form: (res as any).error });
+        const errorMsg = (res as any).error || "Failed to create record";
+        setErrors((res as any).details || { _form: errorMsg });
+        showNotification("Creation failed", errorMsg, "error");
       }
     } catch (err: any) {
       setErrors({ _form: err.message });
+      showNotification("Creation error", err.message, "error");
     } finally {
       setSaving(false);
     }

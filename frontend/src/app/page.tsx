@@ -450,10 +450,23 @@ function LoginPage({ onSuccess }: any) {
     setError("");
     try {
       const { apiPost, setAuthToken } = await import("@/lib/api");
+      const { showNotification } = await import("@/components/NotificationToast");
       const res = await apiPost(mode === "login" ? "/auth/login" : "/auth/register", form);
-      if (res.success) { setAuthToken((res.data as any).token); onSuccess(); }
-      else setError((res as any).error || "Failed");
-    } catch (err: any) { setError(err.message); }
+      if (res.success) { 
+        setAuthToken((res.data as any).token); 
+        showNotification(mode === "login" ? "Welcome back!" : "Account created successfully!", undefined, "success");
+        onSuccess(); 
+      }
+      else {
+        const errorMsg = (res as any).error || "Authentication failed";
+        setError(errorMsg);
+        showNotification("Authentication failed", errorMsg, "error");
+      }
+    } catch (err: any) { 
+      setError(err.message); 
+      const { showNotification } = await import("@/components/NotificationToast");
+      showNotification("System error", err.message, "error");
+    }
     finally { setLoading(false); }
   };
 
