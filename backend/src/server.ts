@@ -22,6 +22,8 @@ const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage() });
 const PORT = parseInt(process.env.PORT || "4000");
 
+import bcrypt from "bcryptjs";
+
 // --- Load config (fails fast with clear error if missing/invalid) ---
 console.log("\n🚀 Starting Config Platform Backend...\n");
 const config = loadConfig();
@@ -91,7 +93,9 @@ authRouter.post("/register", async (req, res) => {
       res.status(409).json({ success: false, error: "Email already registered" });
       return;
     }
-    const hashed = crypto.createHash("sha256").update(password).digest("hex");
+    
+    // Hash password with bcrypt (10 rounds)
+    const hashed = await bcrypt.hash(password, 10);
     const count = await prisma.user.count();
     const isAdmin = count === 0;
     
@@ -125,8 +129,10 @@ authRouter.post("/login", async (req, res) => {
       res.status(401).json({ success: false, error: "This account uses Google login. Please sign in with Google." });
       return;
     }
-    const hashed = crypto.createHash("sha256").update(password).digest("hex");
-    if (user.password !== hashed) {
+
+    // Verify password with bcrypt
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
       res.status(401).json({ success: false, error: "Invalid email or password" });
       return;
     }

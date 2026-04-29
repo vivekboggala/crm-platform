@@ -171,8 +171,8 @@ Then use it in config:
 - **Partial config (missing `notifications`, `apis`)** → defaults to empty arrays, no crash
 
 ### Auth
-- SHA-256 used for password hashing (demo-appropriate; production would use bcrypt)
-- JWT tokens stored in `localStorage` — tradeoff for simplicity vs cookie-based security
+- Email + password (bcrypt hashed, JWT sessions, 7-day expiry)
+- User-scoped data: each user only sees their own records
 
 ### Database
 - JSONB stores all entity data — schema mismatches are ignored
