@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { connectSSE } from "@/lib/api";
 import type { NotificationEvent } from "@/lib/types";
 
@@ -14,22 +14,28 @@ interface Toast {
 export default function NotificationToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   const addToast = useCallback((message: string, description?: string, type: Toast["type"] = "success") => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const toast: Toast = { id, message, description, type };
     
-    setToasts((prev) => [...prev, toast]);
+    if (isMounted.current) setToasts((prev) => [...prev, toast]);
     
     // Auto-remove after 3 seconds
     setTimeout(() => removeToast(id), 3000);
   }, []);
 
   const removeToast = useCallback((id: string) => {
-    setToasts((prev) =>
+    if (isMounted.current) setToasts((prev) =>
       prev.map((t) => (t.id === id ? { ...t, exiting: true } : t))
     );
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
+      if (isMounted.current) setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 300);
   }, []);
 

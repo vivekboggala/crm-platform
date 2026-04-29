@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { apiGet, apiPost } from "@/lib/api";
 import { useConfig } from "@/engine/ConfigContext";
 import { showNotification } from "./NotificationToast";
@@ -20,19 +20,27 @@ export default function SchemaEditor() {
 
   const [lastSaved, setLastSaved] = useState<string | null>(null);
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   useEffect(() => {
     const fetchConfig = async () => {
       try {
         const res = await apiGet("/config");
-        if (res.success) {
-          setConfigStr(JSON.stringify(res.data, null, 2));
-        } else {
-          setError((res as any).error || "Failed to load config.");
+        if (isMounted.current) {
+          if (res.success) {
+            setConfigStr(JSON.stringify(res.data, null, 2));
+          } else {
+            setError((res as any).error || "Failed to load config.");
+          }
         }
       } catch (err: any) {
-        setError(err.message);
+        if (isMounted.current) setError(err.message);
       } finally {
-        setLoading(false);
+        if (isMounted.current) setLoading(false);
       }
     };
     fetchConfig();

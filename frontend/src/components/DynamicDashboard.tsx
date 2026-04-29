@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useConfig } from "@/engine/ConfigContext";
 import { useTranslation } from "@/engine/I18nContext";
@@ -38,18 +38,26 @@ export default function DynamicDashboard() {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   const fetchData = async () => {
     try {
       const [statsRes, activityRes] = await Promise.all([
         apiGet("/stats"),
         apiGet("/activity")
       ]);
-      if (statsRes.success) setStats(statsRes.data as any);
-      if (activityRes.success) setActivities(activityRes.data as any);
+      if (isMounted.current) {
+        if (statsRes.success) setStats(statsRes.data as any);
+        if (activityRes.success) setActivities(activityRes.data as any);
+      }
     } catch (err) {
       console.error("❌ Fetch Error:", err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 

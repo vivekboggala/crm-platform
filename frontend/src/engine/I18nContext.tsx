@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from "react";
 import en from "../i18n/en.json";
 import es from "../i18n/es.json";
 import pt from "../i18n/pt.json";
@@ -30,11 +30,17 @@ const I18nContext = createContext<I18nContextType>({
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState("en");
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   useEffect(() => {
     // Load saved locale from localStorage ONLY on client mount
     const saved = localStorage.getItem("app_locale");
     if (saved && translations[saved]) {
-      setLocaleState(saved);
+      if (isMounted.current) setLocaleState(saved);
       document.documentElement.lang = saved;
     }
   }, []);

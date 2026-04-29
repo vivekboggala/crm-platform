@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PhoneInput, { isValidPhoneNumber, type Country } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
@@ -40,8 +40,15 @@ export default function PhoneInputField({ value, onChange, placeholder, id }: Ph
   const [country, setCountry] = useState<Country>("US");
   const [error, setError] = useState("");
 
+  const isMounted = useRef(true);
+
   useEffect(() => {
-    setCountry(detectCountry());
+    return () => { isMounted.current = false; };
+  }, []);
+
+  useEffect(() => {
+    const detected = detectCountry();
+    if (isMounted.current) setCountry(detected);
   }, []);
 
   const handleChange = (val: string | undefined) => {

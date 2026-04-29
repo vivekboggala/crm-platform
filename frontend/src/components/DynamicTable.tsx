@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useConfig } from "@/engine/ConfigContext";
 import { useTranslation } from "@/engine/I18nContext";
 import { apiGet, apiDelete, apiPost, apiPut } from "@/lib/api";
@@ -52,16 +52,22 @@ export default function DynamicTable({ entity: entityName }: DynamicTableProps) 
 
   const entityConfig = config?.database.entities.find((e) => e.name === entityName);
 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => { isMounted.current = false; };
+  }, []);
+
   const fetchData = async () => {
     if (!entityName) return;
-    setLoading(true);
+    if (isMounted.current) setLoading(true);
     try {
       const res = await apiGet(`/${entityName.toLowerCase()}`);
-      if (res.success) setData(res.data as any[]);
+      if (res.success && isMounted.current) setData(res.data as any[]);
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
