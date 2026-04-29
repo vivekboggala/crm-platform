@@ -7,6 +7,7 @@ import { isAuthenticated, clearAuthToken, apiGet } from "@/lib/api";
 import NotificationToast from "@/components/NotificationToast";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 import PageRenderer from "@/engine/PageRenderer";
+import SchemaEditor from "@/components/SchemaEditor";
 import type { PageConfig } from "@/lib/types";
 
 // --- SVG Icons ---
@@ -231,7 +232,11 @@ export function AppShell({ route }: { route: string }) {
           </div>
         </header>
         <main className="main-content">
-          <PageRenderer route={currentRoute} isAdmin={isAdmin} />
+          {currentRoute === "settings" ? (
+            <SchemaEditor />
+          ) : (
+            <PageRenderer route={currentRoute} isAdmin={isAdmin} />
+          )}
         </main>
       </div>
     </div>
