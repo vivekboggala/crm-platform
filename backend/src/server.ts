@@ -213,9 +213,17 @@ authRouter.post("/logout", async (req: any, res) => {
       if (user && user.isGuest === true) {
         console.log("Guest cleanup starting...");
         try {
-          const deletedRecords = await prisma.record.deleteMany({ where: { userId: user.id } });
+          // Schema verification (schema.prisma):
+          //   model Record  → @@map("records")        → table: "records"
+          //   userId String → @map("user_id")         → column: "user_id"
+          //   model User    → @@map("users")           → table: "users"
+          // Using $executeRaw guarantees the exact SQL table/column names are used,
+          // bypassing any Prisma client mapping translation layer.
+          const result = await prisma.$executeRaw`
+            DELETE FROM "records" WHERE "user_id" = ${user.id}
+          `;
           await prisma.user.delete({ where: { id: user.id } });
-          console.log(`✅ Guest cleanup done: deleted ${deletedRecords.count} records and user ${user.id}`);
+          console.log(`✅ Guest cleanup done: deleted ${result} records and user ${user.id}`);
         } catch (err: any) {
           console.error("Guest cleanup error:", err);
           // Still return success — client session ends regardless
