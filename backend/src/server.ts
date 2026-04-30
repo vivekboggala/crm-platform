@@ -28,17 +28,19 @@ import bcrypt from "bcryptjs";
 console.log("\n🚀 Starting Config Platform Backend...\n");
 const config = loadConfig();
 
-// --- Gmail SMTP transporter ---
-const gmailUser = process.env.GMAIL_USER;
-const gmailPass = process.env.GMAIL_APP_PASSWORD;
-console.log(`📧 Gmail SMTP configured: ${!!(gmailUser && gmailPass)}`);
+// --- Brevo SMTP transporter ---
+const brevoUser = process.env.BREVO_USER;
+const brevoKey = process.env.BREVO_SMTP_KEY;
+console.log(`📧 Brevo SMTP configured: ${!!(brevoUser && brevoKey)}`);
 
-const transporter = (gmailUser && gmailPass)
+const transporter = (brevoUser && brevoKey)
   ? nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
       auth: {
-        user: gmailUser,
-        pass: gmailPass,
+        user: brevoUser,
+        pass: brevoKey,
       },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
@@ -49,21 +51,21 @@ const transporter = (gmailUser && gmailPass)
 // Verify SMTP at startup
 if (transporter) {
   transporter.verify().then(() => {
-    console.log("✅ Gmail SMTP connection verified");
+    console.log("✅ Brevo SMTP connection verified");
   }).catch((err: any) => {
-    console.error("❌ Gmail SMTP verify failed:", err.message);
+    console.error("❌ Brevo SMTP verify failed:", err.message);
   });
 }
 
 async function sendWelcomeEmail(email: string, name: string) {
   if (!transporter) {
-    console.log("⚠️  Skipping welcome email — GMAIL_USER / GMAIL_APP_PASSWORD not set");
+    console.log("⚠️  Skipping welcome email — BREVO_USER / BREVO_SMTP_KEY not set");
     return;
   }
   try {
     console.log("📧 Sending welcome email to:", email);
     const info = await transporter.sendMail({
-      from: gmailUser,
+      from: brevoUser,
       to: email,
       subject: `Welcome to ${config.app.name}!`,
       html: `
