@@ -35,13 +35,25 @@ const smtpTransporter = process.env.SMTP_HOST
   ? nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,  // true for port 465 (implicit TLS/SSL)
+      secure: true,           // true = implicit TLS on port 465
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      connectionTimeout: 10000,  // 10s — fail fast instead of hanging
+      greetingTimeout:  10000,   // 10s — time to receive SMTP greeting
+      socketTimeout:    10000,   // 10s — idle socket timeout
     })
   : null;
+
+// Verify SMTP connection once at startup so misconfiguration appears in logs immediately
+if (smtpTransporter) {
+  smtpTransporter.verify().then(() => {
+    console.log("✅ SMTP connection verified successfully");
+  }).catch((err: any) => {
+    console.error("❌ SMTP verify failed — emails will not send:", err);
+  });
+}
 
 async function sendWelcomeEmail(email: string, name: string) {
   if (!smtpTransporter) {
@@ -50,7 +62,7 @@ async function sendWelcomeEmail(email: string, name: string) {
   }
   try {
     console.log("📧 Sending welcome email to:", email);
-    await smtpTransporter.sendMail({
+    const info = await smtpTransporter.sendMail({
       from: process.env.SMTP_USER,
       to: email,
       subject: `Welcome to ${config.app.name}`,
@@ -64,9 +76,10 @@ async function sendWelcomeEmail(email: string, name: string) {
         </div>
       `,
     });
-    console.log("✅ Welcome email sent successfully to:", email);
-  } catch (e: any) {
-    console.error("❌ Email error:", e.message);
+    console.log("✅ Welcome email sent:", info.messageId);
+  } catch (err: any) {
+    // Log the full error object — not just .message — so SMTP error codes show in Render logs
+    console.error("❌ Email failed:", err);
   }
 }
 
