@@ -108,11 +108,10 @@ authRouter.post("/register", async (req, res) => {
     
     // Hash password with bcrypt (10 rounds)
     const hashed = await bcrypt.hash(password, 10);
-    const count = await prisma.user.count();
-    const isAdmin = count === 0;
     
+    // Every registered (email/password) user gets admin access
     const user = await prisma.user.create({
-      data: { id: uuidv4(), email, password: hashed, name: name || null, isAdmin },
+      data: { id: uuidv4(), email, password: hashed, name: name || null, isAdmin: true, isGuest: false },
     });
     
     console.log(`New user created (Email), sending welcome email to: ${email}`);
@@ -256,8 +255,6 @@ authRouter.post("/google", async (req, res) => {
       return;
     }
 
-    const count = await prisma.user.count();
-    const isAdmin = count === 0;
     const user = await prisma.user.create({
       data: {
         id: uuidv4(),
@@ -265,7 +262,8 @@ authRouter.post("/google", async (req, res) => {
         name: name || email.split("@")[0],
         password: null,
         googleId: googleId || null,
-        isAdmin,
+        isAdmin: true,
+        isGuest: false,
       },
     });
     sendWelcomeEmail(name || email.split("@")[0], email);
