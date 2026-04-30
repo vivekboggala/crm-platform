@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { loadConfig, reloadConfig } from "./config/loader";
 import { generateRoutes } from "./engine/routeGenerator";
 import { authMiddleware, generateToken } from "./middleware/auth";
@@ -28,39 +28,57 @@ import bcrypt from "bcryptjs";
 console.log("\n🚀 Starting Config Platform Backend...\n");
 const config = loadConfig();
 
-// --- Resend email client (replaces Nodemailer — Render blocks SMTP, Resend uses HTTPS) ---
-const resendApiKey = process.env.RESEND_API_KEY;
-console.log(`📧 Resend configured: ${!!resendApiKey}`);
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+// --- Gmail SMTP transporter ---
+const gmailUser = process.env.GMAIL_USER;
+const gmailPass = process.env.GMAIL_APP_PASSWORD;
+console.log(`📧 Gmail SMTP configured: ${!!(gmailUser && gmailPass)}`);
+
+const transporter = (gmailUser && gmailPass)
+  ? nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: gmailUser,
+        pass: gmailPass,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+    })
+  : null;
+
+// Verify SMTP at startup
+if (transporter) {
+  transporter.verify().then(() => {
+    console.log("✅ Gmail SMTP connection verified");
+  }).catch((err: any) => {
+    console.error("❌ Gmail SMTP verify failed:", err.message);
+  });
+}
 
 async function sendWelcomeEmail(email: string, name: string) {
-  if (!resend) {
-    console.log("⚠️  Skipping welcome email — RESEND_API_KEY not set");
+  if (!transporter) {
+    console.log("⚠️  Skipping welcome email — GMAIL_USER / GMAIL_APP_PASSWORD not set");
     return;
   }
   try {
     console.log("📧 Sending welcome email to:", email);
-    const { data, error } = await resend.emails.send({
-      from: `${config.app.name} <onboarding@resend.dev>`,
+    const info = await transporter.sendMail({
+      from: gmailUser,
       to: email,
-      subject: `Welcome to ${config.app.name}`,
+      subject: `Welcome to ${config.app.name}!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
           <h2 style="color: #0f172a;">Welcome, ${name || "there"}! 🎉</h2>
-          <p style="color: #475569; line-height: 1.6;">Your account on <strong>${config.app.name}</strong> has been successfully created.</p>
-          <p style="color: #475569; line-height: 1.6;">You can now log in and start managing your contacts, deals, and tasks.</p>
+          <p style="color: #475569; line-height: 1.6;">Your account has been created successfully.</p>
+          <p style="color: #475569; line-height: 1.6;">You can now login and start managing your data.</p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
           <p style="color: #94a3b8; font-size: 0.875rem;">This is an automated message from ${config.app.name}.</p>
         </div>
       `,
     });
-    if (error) {
-      console.error("❌ Resend error:", error);
-    } else {
-      console.log("✅ Welcome email sent:", data?.id);
-    }
-  } catch (err) {
-    console.error("❌ Email failed (unexpected):", err);
+    console.log("✅ Welcome email sent:", info.messageId);
+  } catch (err: any) {
+    console.error("❌ Email failed:", err);
   }
 }
 
