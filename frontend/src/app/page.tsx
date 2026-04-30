@@ -139,6 +139,18 @@ export function AppShell({ route }: { route: string }) {
     checkAuth();
   }, [checkAuth]);
 
+  // Guard settings route — must be declared here (before early returns) to satisfy Rules of Hooks
+  useEffect(() => {
+    if (currentRoute === "settings" && user && (!isAdmin || (user as any).isGuest)) {
+      setTimeout(() => {
+        if (isMounted.current) {
+          window.history.pushState({}, "", "/");
+          setCurrentRoute("");
+        }
+      }, 0);
+    }
+  }, [currentRoute, user, isAdmin]);
+
   // Full logout: clear localStorage + NextAuth session + hard redirect
   const handleLogout = async () => {
     try {
@@ -170,14 +182,6 @@ export function AppShell({ route }: { route: string }) {
     window.history.pushState({}, "", newRoute);
   };
 
-  // Redirect if non-admin or guest tries to access settings
-  useEffect(() => {
-    if (currentRoute === "settings" && user && (!isAdmin || (user as any).isGuest)) {
-      setTimeout(() => {
-        navigateTo("/");
-      }, 0);
-    }
-  }, [currentRoute, user, isAdmin]);
 
   const activePage = config.ui.pages.find((p: any) => 
     currentRoute === "" ? p.route === "/" : `/${currentRoute}` === p.route

@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useConfig } from "@/engine/ConfigContext";
 
 type Theme = "light" | "dark";
@@ -16,23 +16,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const configDefault: Theme = config?.app?.theme === "dark" ? "dark" : "light";
   const [theme, setTheme] = useState<Theme>(configDefault);
 
-  const isMounted = useRef(true);
-
   useEffect(() => {
-    return () => { isMounted.current = false; };
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("app_theme") as Theme | null;
-    if (stored === "dark" || stored === "light") {
-      // User has manually toggled before — respect their choice
-      if (isMounted.current) setTheme(stored);
-      document.documentElement.classList.toggle("dark", stored === "dark");
-    } else {
-      // No stored preference — use config default
-      if (isMounted.current) setTheme(configDefault);
-      document.documentElement.classList.toggle("dark", configDefault === "dark");
-    }
+    const timer = setTimeout(() => {
+      const stored = localStorage.getItem("app_theme") as Theme | null;
+      if (stored === "dark" || stored === "light") {
+        setTheme(stored);
+        document.documentElement.classList.toggle("dark", stored === "dark");
+      } else {
+        setTheme(configDefault);
+        document.documentElement.classList.toggle("dark", configDefault === "dark");
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [configDefault]);
 
   const toggleTheme = () => {
@@ -58,4 +53,3 @@ export function useTheme() {
   }
   return context;
 }
-
