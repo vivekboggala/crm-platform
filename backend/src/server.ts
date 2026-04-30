@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import nodemailer from "nodemailer";
+
 import { loadConfig, reloadConfig } from "./config/loader";
 import { generateRoutes } from "./engine/routeGenerator";
 import { authMiddleware, generateToken } from "./middleware/auth";
@@ -28,58 +28,32 @@ import bcrypt from "bcryptjs";
 console.log("\n🚀 Starting Config Platform Backend...\n");
 const config = loadConfig();
 
-// --- Brevo SMTP transporter ---
-const brevoUser = process.env.BREVO_USER;
-const brevoKey = process.env.BREVO_SMTP_KEY;
-console.log(`📧 Brevo SMTP configured: ${!!(brevoUser && brevoKey)}`);
+// --- Brevo HTTP API client (bypasses SMTP port blocks) ---
+const brevoApiKey = process.env.BREVO_API_KEY;
+console.log(`📧 Brevo API configured: ${!!brevoApiKey}`);
 
-const transporter = (brevoUser && brevoKey)
-  ? nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: brevoUser,
-        pass: brevoKey,
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-    })
-  : null;
-
-// Verify SMTP at startup
-if (transporter) {
-  transporter.verify().then(() => {
-    console.log("✅ Brevo SMTP connection verified");
-  }).catch((err: any) => {
-    console.error("❌ Brevo SMTP verify failed:", err.message);
-  });
-}
-
-async function sendWelcomeEmail(email: string, name: string) {
-  if (!transporter) {
-    console.log("⚠️  Skipping welcome email — BREVO_USER / BREVO_SMTP_KEY not set");
-    return;
-  }
+async function sendWelcomeEmail(name: string, email: string) {
   try {
-    console.log("📧 Sending welcome email to:", email);
-    const info = await transporter.sendMail({
-      from: brevoUser,
-      to: email,
-      subject: `Welcome to ${config.app.name}!`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-          <h2 style="color: #0f172a;">Welcome, ${name || "there"}! 🎉</h2>
-          <p style="color: #475569; line-height: 1.6;">Your account has been created successfully.</p>
-          <p style="color: #475569; line-height: 1.6;">You can now login and start managing your data.</p>
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 0.875rem;">This is an automated message from ${config.app.name}.</p>
-        </div>
-      `,
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY || ""
+      },
+      body: JSON.stringify({
+        sender: { name: config.app.name, email: "vivekreddy.boggala@gmail.com" },
+        to: [{ email: email, name: name }],
+        subject: `Welcome to ${config.app.name}!`,
+        htmlContent: `<h2>Welcome ${name}!</h2><p>Your account has been created successfully.</p><p>You can now login and start managing your data.</p>`
+      })
     });
-    console.log("✅ Welcome email sent:", info.messageId);
-  } catch (err: any) {
+    if (response.ok) {
+      console.log("✅ Welcome email sent to:", email);
+    } else {
+      const err = await response.text();
+      console.error("❌ Email API error:", err);
+    }
+  } catch (err) {
     console.error("❌ Email failed:", err);
   }
 }
@@ -142,7 +116,7 @@ authRouter.post("/register", async (req, res) => {
     });
     
     console.log(`New user created (Email), sending welcome email to: ${email}`);
-    sendWelcomeEmail(email, name || email.split("@")[0]);
+    sendWelcomeEmail(name || email.split("@")[0], email);
 
     const token = generateToken(user.id, user.email);
     res.status(201).json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
@@ -294,7 +268,7 @@ authRouter.post("/google", async (req, res) => {
         isAdmin,
       },
     });
-    sendWelcomeEmail(email, name || email.split("@")[0]);
+    sendWelcomeEmail(name || email.split("@")[0], email);
     const token = generateToken(user.id, user.email);
     res.status(201).json({
       success: true,
