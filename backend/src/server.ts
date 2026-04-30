@@ -174,30 +174,55 @@ authRouter.post("/guest", async (req, res) => {
     const name = `Guest-${randomId}`;
     const password = crypto.randomBytes(8).toString("hex");
     const hashed = await bcrypt.hash(password, 10);
-    
-    const user = await prisma.user.create({
+
+    const newUser = await prisma.user.create({
       data: { id: uuidv4(), email, password: hashed, name, isAdmin: false, isGuest: true },
     });
-    
-    const token = generateToken(user.id, user.email);
-    res.status(201).json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
+
+    console.log("Guest user created:", newUser.id, "isGuest:", newUser.isGuest);
+
+    const token = generateToken(newUser.id, newUser.email);
+    res.status(201).json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          isAdmin: newUser.isAdmin,
+          isGuest: newUser.isGuest,
+        },
+      },
+    });
   } catch (err: any) {
+    console.error("Guest login error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 authRouter.post("/logout", async (req: any, res) => {
+  const userId = req.userId;
+  console.log("Logout called for userId:", userId);
+
   try {
-    const userId = req.userId;
     if (userId) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
+      console.log("User found:", user);
+
       if (user && user.isGuest === true) {
-        // Delete all records and the user itself
-        const deletedRecords = await prisma.record.deleteMany({ where: { userId: user.id } });
-        await prisma.user.delete({ where: { id: user.id } });
-        console.log(`Guest cleanup: deleted ${deletedRecords.count} records and user`);
+        console.log("Guest cleanup starting...");
+        try {
+          const deletedRecords = await prisma.record.deleteMany({ where: { userId: user.id } });
+          await prisma.user.delete({ where: { id: user.id } });
+          console.log(`✅ Guest cleanup done: deleted ${deletedRecords.count} records and user ${user.id}`);
+        } catch (err: any) {
+          console.error("Guest cleanup error:", err);
+          // Still return success — client session ends regardless
+        }
       }
     }
+
     res.json({ success: true });
   } catch (err: any) {
     console.error("Logout error:", err.message);
