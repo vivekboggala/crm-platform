@@ -34,8 +34,8 @@ console.log(`📧 SMTP configured: ${!!process.env.SMTP_HOST} (host: ${process.e
 const smtpTransporter = process.env.SMTP_HOST
   ? nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
+      port: Number(process.env.SMTP_PORT) || 465,
+      secure: true,  // true for port 465 (implicit TLS/SSL)
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
