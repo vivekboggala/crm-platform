@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { loadConfig, reloadConfig } from "./config/loader";
 import { generateRoutes } from "./engine/routeGenerator";
 import { authMiddleware, generateToken } from "./middleware/auth";
@@ -28,42 +28,20 @@ import bcrypt from "bcryptjs";
 console.log("\n🚀 Starting Config Platform Backend...\n");
 const config = loadConfig();
 
-// --- SMTP email transporter ---
-console.log(`📧 SMTP configured: ${!!process.env.SMTP_HOST} (host: ${process.env.SMTP_HOST || "not set"})`);
-
-const smtpTransporter = process.env.SMTP_HOST
-  ? nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,           // true = implicit TLS on port 465
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      connectionTimeout: 10000,  // 10s — fail fast instead of hanging
-      greetingTimeout:  10000,   // 10s — time to receive SMTP greeting
-      socketTimeout:    10000,   // 10s — idle socket timeout
-    })
-  : null;
-
-// Verify SMTP connection once at startup so misconfiguration appears in logs immediately
-if (smtpTransporter) {
-  smtpTransporter.verify().then(() => {
-    console.log("✅ SMTP connection verified successfully");
-  }).catch((err: any) => {
-    console.error("❌ SMTP verify failed — emails will not send:", err);
-  });
-}
+// --- Resend email client (replaces Nodemailer — Render blocks SMTP, Resend uses HTTPS) ---
+const resendApiKey = process.env.RESEND_API_KEY;
+console.log(`📧 Resend configured: ${!!resendApiKey}`);
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 async function sendWelcomeEmail(email: string, name: string) {
-  if (!smtpTransporter) {
-    console.log("⚠️  Skipping welcome email — SMTP not configured");
+  if (!resend) {
+    console.log("⚠️  Skipping welcome email — RESEND_API_KEY not set");
     return;
   }
   try {
     console.log("📧 Sending welcome email to:", email);
-    const info = await smtpTransporter.sendMail({
-      from: process.env.SMTP_USER,
+    const { data, error } = await resend.emails.send({
+      from: `${config.app.name} <onboarding@resend.dev>`,
       to: email,
       subject: `Welcome to ${config.app.name}`,
       html: `
@@ -76,10 +54,13 @@ async function sendWelcomeEmail(email: string, name: string) {
         </div>
       `,
     });
-    console.log("✅ Welcome email sent:", info.messageId);
-  } catch (err: any) {
-    // Log the full error object — not just .message — so SMTP error codes show in Render logs
-    console.error("❌ Email failed:", err);
+    if (error) {
+      console.error("❌ Resend error:", error);
+    } else {
+      console.log("✅ Welcome email sent:", data?.id);
+    }
+  } catch (err) {
+    console.error("❌ Email failed (unexpected):", err);
   }
 }
 
