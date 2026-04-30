@@ -70,7 +70,7 @@ export function AppShell({ route }: { route: string }) {
   });
   const [authenticated, setAuthenticated] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; name: string; isAdmin?: boolean; isGuest?: boolean } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -115,8 +115,9 @@ export function AppShell({ route }: { route: string }) {
       setTimeout(() => {
         if (!isMounted.current) return;
         if (res.success) {
-          setUser(res.data as any);
-          if ((res.data as any).isAdmin) setIsAdmin(true);
+          const userData = res.data as any;
+          setUser(userData);
+          setIsAdmin(userData.isAdmin === true);
           setAuthenticated(true);
         } else {
           // Token is invalid/expired — clear it
@@ -141,13 +142,16 @@ export function AppShell({ route }: { route: string }) {
 
   // Guard settings route — must be declared here (before early returns) to satisfy Rules of Hooks
   useEffect(() => {
-    if (currentRoute === "settings" && user && (!isAdmin || (user as any).isGuest)) {
-      setTimeout(() => {
-        if (isMounted.current) {
-          window.history.pushState({}, "", "/");
-          setCurrentRoute("");
-        }
-      }, 0);
+    if (currentRoute === "settings" && user) {
+      const isActuallyAdmin = isAdmin === true && user.isGuest === false;
+      if (!isActuallyAdmin) {
+        setTimeout(() => {
+          if (isMounted.current) {
+            window.history.pushState({}, "", "/");
+            setCurrentRoute("");
+          }
+        }, 0);
+      }
     }
   }, [currentRoute, user, isAdmin]);
 
@@ -229,7 +233,7 @@ export function AppShell({ route }: { route: string }) {
             );
           })}
 
-          {isAdmin && !(user as any).isGuest && (
+          {isAdmin === true && user?.isGuest === false && (
             <button
               className={`nav-link ${currentRoute === "settings" ? "active" : ""}`}
               data-tooltip={t("common.settings")}
@@ -329,7 +333,7 @@ function UserMenu({ user, isAdmin, t, onLogout, onNavigate }: any) {
             <div className="dropdown-user-name">{user.name}</div>
             <div className="dropdown-user-email">{user.email}</div>
           </div>
-          {isAdmin && !user.isGuest && (
+          {isAdmin === true && user?.isGuest === false && (
             <button className="dropdown-item" onClick={() => { onNavigate("/settings"); setIsOpen(false); }}>
               <IconSettings size={16} /> {t("common.settings")}
             </button>

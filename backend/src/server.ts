@@ -119,7 +119,7 @@ authRouter.post("/register", async (req, res) => {
     sendWelcomeEmail(name || email.split("@")[0], email);
 
     const token = generateToken(user.id, user.email);
-    res.status(201).json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
+    res.status(201).json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, isGuest: user.isGuest } } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -149,7 +149,7 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
     const token = generateToken(user.id, user.email);
-    res.json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } } });
+    res.json({ success: true, data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, isGuest: user.isGuest } } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -250,7 +250,7 @@ authRouter.post("/google", async (req, res) => {
         success: true,
         data: {
           token,
-          user: { id: existingUser.id, email: existingUser.email, name: existingUser.name, isAdmin: existingUser.isAdmin },
+          user: { id: existingUser.id, email: existingUser.email, name: existingUser.name, isAdmin: existingUser.isAdmin, isGuest: existingUser.isGuest },
         },
       });
       return;
@@ -272,7 +272,7 @@ authRouter.post("/google", async (req, res) => {
     const token = generateToken(user.id, user.email);
     res.status(201).json({
       success: true,
-      data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } },
+      data: { token, user: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, isGuest: user.isGuest } },
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -290,7 +290,7 @@ authRouter.get("/me", authMiddleware, async (req: any, res) => {
     res.status(404).json({ success: false, error: "User not found" });
     return;
   }
-  res.json({ success: true, data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin } });
+  res.json({ success: true, data: { id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, isGuest: user.isGuest } });
 });
 
 app.use("/api/auth", authRouter);
@@ -377,7 +377,7 @@ app.post("/api/config", async (req: any, res) => {
     }
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.isAdmin !== true || user.isGuest === true) {
-      res.status(403).json({ success: false, error: "Guests cannot modify configuration" });
+      res.status(403).json({ success: false, error: "Access denied: Admin privileges required" });
       return;
     }
 
